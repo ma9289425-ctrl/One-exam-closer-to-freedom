@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aircraft Pressurisation — CLO 3 Revision | Module 11.4 ATA 21</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #1a1d23;
+    --bg2:       #20242d;
+    --bg3:       #262b36;
+    --card:      #2a303d;
+    --card2:     #313848;
+    --border:    #353d50;
+    --accent:    #4f8ef7;
+    --accent2:   #38d9a9;
+    --warn:      #f0a742;
+    --danger:    #e05c5c;
+    --text:      #dce3f0;
+    --text2:     #9aaac4;
+    --text3:     #c2cedf;
+    --correct:   #38d9a9;
+    --incorrect: #e05c5c;
+    --purple:    #9b72f5;
+    --radius:    12px;
+    --radius-sm: 8px;
+    --shadow:    0 4px 20px rgba(0,0,0,0.35);
+    --transition: 0.25s ease;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 9999;
+    transition: width 0.1s linear;
+  }
+
+  /* ===== TOP BAR ===== */
+  #topbar {
+    position: fixed;
+    top: 3px; left: 0; right: 0;
+    height: 52px;
+    background: rgba(26,29,35,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 1000;
+    gap: 10px;
+  }
+
+  #topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  #sidebar-toggle {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 18px;
+    display: none;
+    transition: background var(--transition);
+  }
+  #sidebar-toggle:hover { background: var(--card2); }
+
+  #topbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  #topbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .ctrl-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all var(--transition);
+  }
+  .ctrl-btn:hover { background: var(--card2); color: var(--text); }
+  .ctrl-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ===== LAYOUT ===== */
+  #layout {
+    display: flex;
+    padding-top: 55px;
+    min-height: 100vh;
+  }
+
+  /* ===== SIDEBAR ===== */
+  #sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 55px;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    padding: 16px 0;
+    transition: transform var(--transition);
+    z-index: 900;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  #sidebar h3 {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    padding: 0 16px 8px;
+  }
+
+  #sidebar nav a {
+    display: block;
+    padding: 7px 16px;
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: all var(--transition);
+    line-height: 1.3;
+  }
+  #sidebar nav a:hover,
+  #sidebar nav a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(79,142,247,0.06);
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  #main {
+    margin-left: 240px;
+    flex: 1;
+    padding: 32px 28px 80px;
+    max-width: 960px;
+  }
+
+  /* ===== HERO ===== */
+  #hero {
+    background: linear-gradient(135deg, #1e2740 0%, #1a2235 50%, #1e2530 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  #hero::before {
+    content: '✈';
+    position: absolute;
+    right: 24px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 80px;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+  #hero .badge {
+    display: inline-block;
+    background: rgba(79,142,247,0.15);
+    border: 1px solid rgba(79,142,247,0.3);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  #hero h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.25;
+  }
+  #hero p {
+    color: var(--text2);
+    font-size: 14px;
+    max-width: 520px;
+  }
+
+  /* ===== QUICK STATS ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-card .val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+  }
+  .stat-card .lbl {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 3px;
+    display: block;
+  }
+
+  /* ===== SECTION ===== */
+  .section {
+    margin-bottom: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+    border-bottom: 1px solid transparent;
+    transition: background var(--transition);
+  }
+  .section-header:hover { background: rgba(255,255,255,0.02); }
+  .section-header.open { border-bottom-color: var(--border); }
+
+  .section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .section-meta { flex: 1; }
+  .section-meta h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .section-meta p {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .chevron {
+    color: var(--text2);
+    font-size: 14px;
+    transition: transform var(--transition);
+    flex-shrink: 0;
+  }
+  .chevron.open { transform: rotate(180deg); }
+
+  .section-body {
+    padding: 20px;
+    display: none;
+  }
+  .section-body.open { display: block; }
+
+  /* ===== TYPOGRAPHY IN SECTIONS ===== */
+  .section-body p { color: var(--text3); margin-bottom: 12px; font-size: 14px; }
+  .section-body p:last-child { margin-bottom: 0; }
+
+  .section-body ul, .section-body ol {
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+  .section-body li {
+    color: var(--text3);
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+
+  h3.sub { font-size: 13px; font-weight: 600; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 8px; }
+
+  /* ===== KEYWORD ===== */
+  .kw {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .kw2 { color: var(--accent2); font-weight: 600; }
+  .kw3 { color: var(--warn); font-weight: 600; }
+
+  /* ===== CARDS GRID ===== */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .info-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+  }
+  .info-card h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .info-card p, .info-card li {
+    font-size: 13px !important;
+    color: var(--text3) !important;
+    margin-bottom: 3px !important;
+  }
+
+  /* ===== BOXES ===== */
+  .box {
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border-left: 4px solid;
+    font-size: 14px;
+  }
+  .box-key { background: rgba(79,142,247,0.08); border-color: var(--accent); }
+  .box-warn { background: rgba(240,167,66,0.08); border-color: var(--warn); }
+  .box-danger { background: rgba(224,92,92,0.10); border-color: var(--danger); }
+  .box-recap { background: rgba(56,217,169,0.08); border-color: var(--accent2); }
+  .box-mem { background: rgba(155,114,245,0.08); border-color: var(--purple); }
+
+  .box-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .box-key .box-label { color: var(--accent); }
+  .box-warn .box-label { color: var(--warn); }
+  .box-danger .box-label { color: var(--danger); }
+  .box-recap .box-label { color: var(--accent2); }
+  .box-mem .box-label { color: var(--purple); }
+
+  .box p { color: var(--text3) !important; margin-bottom: 4px !important; }
+  .box li { color: var(--text3) !important; margin-bottom: 3px !important; }
+
+  /* ===== TABLE ===== */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .ref-table th {
+    background: var(--bg3);
+    color: var(--accent);
+    text-align: left;
+    padding: 9px 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+  }
+  .ref-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(53,61,80,0.5);
+    color: var(--text3);
+  }
+  .ref-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .ref-table td:first-child { color: var(--text); font-weight: 500; }
+  .ref-table td.val { color: var(--accent2); font-weight: 600; font-family: monospace; font-size: 14px; }
+
+  /* ===== CHECKLIST ===== */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(53,61,80,0.4);
+    cursor: pointer;
+    color: var(--text3) !important;
+    font-size: 13px !important;
+    transition: color var(--transition);
+    user-select: none;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li.done { color: var(--text2) !important; text-decoration: line-through; }
+  .check-box {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    transition: all var(--transition);
+    margin-top: 1px;
+  }
+  .checklist li.done .check-box {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #000;
+  }
+
+  /* ===== FLASHCARDS ===== */
+  .flashcard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .flashcard {
+    height: 140px;
+    perspective: 800px;
+    cursor: pointer;
+  }
+  .flashcard:focus { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius-sm); }
+
+  .fc-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.4s ease;
+    border-radius: var(--radius-sm);
+  }
+  .flashcard.flipped .fc-inner { transform: rotateY(180deg); }
+
+  .fc-front, .fc-back {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .fc-front {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+  }
+  .fc-back {
+    background: linear-gradient(135deg, #1e2f45, #1a2d3a);
+    border: 1px solid rgba(79,142,247,0.25);
+    transform: rotateY(180deg);
+  }
+
+  .fc-front .q-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .fc-front .q-text {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .fc-front .tap-hint {
+    font-size: 10px;
+    color: var(--text2);
+    margin-top: 8px;
+  }
+  .fc-back .a-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+  .fc-back .a-text {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  /* ===== QUIZ ===== */
+  .quiz-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .quiz-block .q-num {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--purple);
+    margin-bottom: 6px;
+  }
+  .quiz-block .q-text {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 12px;
+    line-height: 1.45;
+  }
+
+  .quiz-options { list-style: none; padding: 0; }
+  .quiz-options li {
+    margin-bottom: 7px;
+  }
+  .quiz-options li button {
+    width: 100%;
+    text-align: left;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 13px;
+    color: var(--text3);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .quiz-options li button:hover:not(:disabled) {
+    background: var(--card2);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+  .quiz-options li button.correct {
+    background: rgba(56,217,169,0.12);
+    border-color: var(--correct);
+    color: var(--correct);
+    font-weight: 600;
+  }
+  .quiz-options li button.incorrect {
+    background: rgba(224,92,92,0.12);
+    border-color: var(--incorrect);
+    color: var(--incorrect);
+  }
+  .quiz-options li button:disabled { cursor: default; }
+
+  .quiz-feedback {
+    font-size: 12px;
+    margin-top: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct { background: rgba(56,217,169,0.1); color: var(--correct); border: 1px solid rgba(56,217,169,0.25); }
+  .quiz-feedback.incorrect { background: rgba(224,92,92,0.1); color: var(--incorrect); border: 1px solid rgba(224,92,92,0.25); }
+
+  .quiz-reset-btn {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all var(--transition);
+  }
+  .quiz-reset-btn:hover { color: var(--text); background: var(--card); }
+
+  /* ===== FOCUS / EXAM MODE ===== */
+  body.focus-mode .extra-text { display: none !important; }
+  body.focus-mode .section-body { display: block !important; }
+  body.focus-mode .section-header { pointer-events: none; }
+
+  body.exam-mode .section { display: none !important; }
+  body.exam-mode .section.exam-visible { display: block !important; }
+  body.exam-mode #hero, body.exam-mode .stats-row { display: none !important; }
+
+  .focus-only { display: none; }
+  body.focus-mode .focus-only { display: block; }
+
+  /* ===== VALVE VISUAL ===== */
+  .valve-diagram {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .valve-state {
+    text-align: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    min-width: 140px;
+  }
+  .valve-state .v-icon { font-size: 22px; margin-bottom: 6px; }
+  .valve-state h5 { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .valve-state p { font-size: 11px; color: var(--text2); margin: 0 !important; }
+  .valve-state.close { border-color: rgba(224,92,92,0.3); }
+  .valve-state.open { border-color: rgba(56,217,169,0.3); }
+  .valve-state.mod { border-color: rgba(79,142,247,0.3); }
+  .valve-state.close h5 { color: var(--danger); }
+  .valve-state.open h5 { color: var(--accent2); }
+  .valve-state.mod h5 { color: var(--accent); }
+
+  /* ===== FLIGHT PHASE TIMELINE ===== */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 12px 0;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 16px; top: 20px; bottom: 20px;
+    width: 2px;
+    background: var(--border);
+  }
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    padding: 10px 0;
+    align-items: flex-start;
+    position: relative;
+  }
+  .tl-dot {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+    z-index: 1;
+    border: 2px solid var(--bg);
+  }
+  .tl-content h4 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .tl-content p { font-size: 12px; color: var(--text2); margin: 0 !important; line-height: 1.4; }
+
+  /* ===== MODES ROW ===== */
+  .modes-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .mode-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 13px;
+  }
+  .mode-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+  .mode-card p { font-size: 12px; color: var(--text2); margin: 0 !important; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    #sidebar {
+      transform: translateX(-100%);
+    }
+    #sidebar.open {
+      transform: translateX(0);
+    }
+    #sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 850;
+    }
+    #sidebar-overlay.show { display: block; }
+    #sidebar-toggle { display: flex; align-items: center; justify-content: center; }
+    #main { margin-left: 0; padding: 20px 14px 60px; }
+    #topbar-title { display: none; }
+    #hero { padding: 24px 20px; }
+    #hero h1 { font-size: 20px; }
+    .ctrl-btn { font-size: 11px; padding: 5px 9px; }
+    .flashcard-grid { grid-template-columns: 1fr 1fr; }
+    .cards-grid { grid-template-columns: 1fr; }
+    body.exam-mode .section.exam-visible { display: block !important; }
+  }
+  @media (max-width: 480px) {
+    .flashcard-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .topbar-controls .ctrl-btn:nth-child(n+3) { display: none; }
+  }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ===== FOCUS STATES ===== */
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ===== EXAM MODE BANNER ===== */
+  #exam-banner {
+    display: none;
+    background: linear-gradient(135deg, rgba(155,114,245,0.15), rgba(79,142,247,0.1));
+    border: 1px solid rgba(155,114,245,0.3);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    color: var(--purple);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  body.exam-mode #exam-banner { display: block; }
+
+  /* ===== SEPARATOR ===== */
+  .sep { height: 1px; background: var(--border); margin: 16px 0; opacity: 0.5; }
+
+  /* ===== SUPPLY SOURCE GRID ===== */
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .source-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 13px;
+    border-top: 3px solid var(--accent);
+  }
+  .source-card.green { border-top-color: var(--accent2); }
+  .source-card.purple { border-top-color: var(--purple); }
+  .source-card.orange { border-top-color: var(--warn); }
+  .source-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text); margin-bottom: 6px; }
+  .source-card p { font-size: 12px; color: var(--text2); margin: 0 !important; }
+  .source-card ul { padding-left: 14px; }
+  .source-card li { font-size: 12px; color: var(--text2); margin-bottom: 2px !important; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div id="sidebar-overlay"></div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div id="topbar-left">
+    <button id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+    <span id="topbar-title">CLO 3 — Aircraft Pressurisation</span>
+  </div>
+  <div id="topbar-controls">
+    <button class="ctrl-btn" id="expand-all-btn">Expand All</button>
+    <button class="ctrl-btn" id="collapse-all-btn">Collapse All</button>
+    <button class="ctrl-btn" id="focus-btn" aria-pressed="false">⚡ Focus Mode</button>
+    <button class="ctrl-btn" id="exam-btn" aria-pressed="false">🎓 Exam Mode</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" role="navigation" aria-label="Table of Contents">
+    <h3>Contents</h3>
+    <nav id="toc-nav">
+      <a href="#sec-atm">1. Atmospheric Pressure</a>
+      <a href="#sec-terms">2. Key Terms</a>
+      <a href="#sec-purpose">3. Purpose of Pressurisation</a>
+      <a href="#sec-structural">4. Structural Considerations</a>
+      <a href="#sec-modes">5. Pressurisation Modes</a>
+      <a href="#sec-controller">6. Cabin Pressure Controller</a>
+      <a href="#sec-outflow">7. Outflow Valve</a>
+      <a href="#sec-safety">8. Safety Valves & Devices</a>
+      <a href="#sec-indications">9. Cockpit Indications</a>
+      <a href="#sec-operation">10. Flight Phase Operation</a>
+      <a href="#sec-troubleshoot">11. Troubleshooting</a>
+      <a href="#sec-supply">12. Air Supply Sources</a>
+      <a href="#sec-apu">13. APU & Ground Air</a>
+      <a href="#sec-distribution">14. Air Distribution</a>
+      <a href="#sec-flashcards">🔁 Flashcards</a>
+      <a href="#sec-quiz">🧪 Quiz</a>
+      <a href="#sec-checklist">✅ Checklist</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- HERO -->
+    <div id="hero">
+      <div class="badge">Module 11.4 · ATA 21 · CLO 3</div>
+      <h1>Aircraft Pressurisation</h1>
+      <p>Revision guide for EASA Part-66 level students. Covers pressurisation theory, system components, operational logic, and exam essentials.</p>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="val">14.7 psi</span>
+        <span class="lbl">Sea-Level Pressure</span>
+      </div>
+      <div class="stat-card">
+        <span class="val">8,000 ft</span>
+        <span class="lbl">Max Cabin Altitude</span>
+      </div>
+      <div class="stat-card">
+        <span class="val">10,000 ft</span>
+        <span class="lbl">Altitude Warning</span>
+      </div>
+      <div class="stat-card">
+        <span class="val">300–500 fpm</span>
+        <span class="lbl">Cabin Rate Typical</span>
+      </div>
+      <div class="stat-card">
+        <span class="val">8–10 psi</span>
+        <span class="lbl">Safety Valve Opens</span>
+      </div>
+      <div class="stat-card">
+        <span class="val">−2°C/1,000 ft</span>
+        <span class="lbl">Standard Lapse Rate</span>
+      </div>
+    </div>
+
+    <div id="exam-banner">🎓 Exam Mode Active — Showing recaps, flashcards and quiz only.</div>
+
+    <!-- ===== SECTION 1: Atmospheric Pressure ===== -->
+    <div class="section" id="sec-atm">
+      <div class="section-header open" role="button" tabindex="0" aria-expanded="true">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(79,142,247,0.12);">🌍</div>
+          <div class="section-meta">
+            <h2>1 — Atmospheric Pressure & Altitude</h2>
+            <p>Standard pressure values and the effect of altitude on flight</p>
+          </div>
+        </div>
+        <span class="chevron open">▼</span>
+      </div>
+      <div class="section-body open">
+
+        <div class="box box-key extra-text">
+          <div class="box-label">💡 Key Concept</div>
+          <p>Air has weight. As altitude increases, there is less air above — so atmospheric pressure <strong>decreases</strong>.</p>
+        </div>
+
+        <h3 class="sub">Standard Sea-Level Pressure</h3>
+        <table class="ref-table extra-text">
+          <thead><tr><th>Unit</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>PSI</td><td class="val">14.7 psi</td></tr>
+            <tr><td>inHg</td><td class="val">29.92 inHg</td></tr>
+            <tr><td>mmHg</td><td class="val">760 mmHg</td></tr>
+            <tr><td>hPa / mb</td><td class="val">1013.2 hPa</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="sub">Temperature & Altitude</h3>
+        <div class="cards-grid extra-text">
+          <div class="info-card">
+            <h4>Troposphere</h4>
+            <p>Where most civil aviation occurs.</p>
+            <p>Temperature decreases with altitude at <span class="kw">−2°C per 1,000 ft</span> (standard lapse rate).</p>
+          </div>
+          <div class="info-card">
+            <h4>Tropopause</h4>
+            <p>Avg: <span class="kw">~38,000 ft</span></p>
+            <p>Poles: 25,000–30,000 ft</p>
+            <p>Equator: up to 60,000 ft</p>
+            <p>Temp at tropopause: <span class="kw">~−57°C</span></p>
+          </div>
+        </div>
+
+        <h3 class="sub">Why Aircraft Fly High</h3>
+        <ul class="extra-text">
+          <li>Lower air density → <span class="kw2">reduced drag</span></li>
+          <li>Improved <span class="kw2">fuel efficiency</span></li>
+          <li>Avoidance of weather and turbulence</li>
+          <li>Pressurisation makes the environment safe and comfortable</li>
+        </ul>
+
+        <div class="box box-recap">
+          <div class="box-label">⚡ Quick Recap</div>
+          <p>Standard sea-level pressure = <strong>14.7 psi / 29.92 inHg / 1013.2 hPa</strong>. Lapse rate = <strong>−2°C per 1,000 ft</strong>. Tropopause ≈ <strong>38,000 ft</strong> at approx. <strong>−57°C</strong>.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 2: Key Terms ===== -->
+    <div class="section" id="sec-terms">
+      <div class="section-header open" role="button" tabindex="0" aria-expanded="true">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(56,217,169,0.12);">📖</div>
+          <div class="section-meta">
+            <h2>2 — Key Pressurisation Terms</h2>
+            <p>Definitions you must know for the exam</p>
+          </div>
+        </div>
+        <span class="chevron open">▼</span>
+      </div>
+      <div class="section-body open">
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <h4>Cabin Altitude</h4>
+            <p>The equivalent altitude matching the pressure <em>inside</em> the cabin.</p>
+            <p>Example: 10.92 psi inside ≈ <span class="kw">8,000 ft cabin altitude</span>.</p>
+          </div>
+          <div class="info-card">
+            <h4>Differential Pressure</h4>
+            <p><strong>Cabin Pressure − Ambient Pressure</strong></p>
+            <p>Measured in <span class="kw">psid</span>.</p>
+            <p>Indicates the structural load on the fuselage.</p>
+          </div>
+          <div class="info-card">
+            <h4>Cabin Rate of Climb</h4>
+            <p>Rate of cabin altitude change.</p>
+            <p>Measured in <span class="kw">fpm</span> (feet per minute).</p>
+            <p>Typical: <span class="kw2">300–500 fpm</span>.</p>
+          </div>
+        </div>
+
+        <div class="box box-recap">
+          <div class="box-label">⚡ Quick Recap</div>
+          <p><strong>Cabin Altitude</strong> = pressure inside expressed as altitude. <strong>Diff. Pressure</strong> = cabin minus ambient (psid). <strong>Cabin Rate</strong> = change in cabin altitude (fpm).</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 3: Purpose ===== -->
+    <div class="section" id="sec-purpose">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(155,114,245,0.12);">🎯</div>
+          <div class="section-meta">
+            <h2>3 — Purpose of a Pressurisation System</h2>
+            <p>What the system must achieve</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <ul>
+          <li>Maintain cabin altitude at <span class="kw">~8,000 ft or lower</span></li>
+          <li>Prevent rapid or uncomfortable pressure changes</li>
+          <li>Provide sufficient <span class="kw2">oxygen pressure</span> for passengers and crew</li>
+          <li>Remove stale air and odours</li>
+          <li>Support cabin heating and cooling</li>
+        </ul>
+
+        <div class="box box-key extra-text">
+          <div class="box-label">💡 Key Concept</div>
+          <p>The fuselage acts as a <strong>sealed pressure vessel</strong>. Air is supplied continuously. Cabin pressure is controlled mainly by regulating how much air <em>leaves</em> through the <span class="kw">outflow valve</span>.</p>
+        </div>
+
+        <div class="box box-recap">
+          <div class="box-label">⚡ Quick Recap</div>
+          <p>Pressure is controlled <strong>primarily at the outflow</strong> — not at the supply. The fuselage is the pressure vessel.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 4: Structural ===== -->
+    <div class="section" id="sec-structural">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(240,167,66,0.12);">🏗️</div>
+          <div class="section-meta">
+            <h2>4 — Structural Considerations</h2>
+            <p>How pressurisation stresses the airframe</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <p class="extra-text">Pressurisation creates stress because cabin pressure is higher than outside pressure. The fuselage must withstand this differential every flight.</p>
+
+        <table class="ref-table">
+          <thead><tr><th>Aircraft Type</th><th>Typical Differential</th></tr></thead>
+          <tbody>
+            <tr><td>Small pressurised reciprocating aircraft</td><td class="val">~3.5 psi</td></tr>
+            <tr><td>High-performance jet aircraft</td><td class="val">~9 psi</td></tr>
+          </tbody>
+        </table>
+
+        <div class="box box-warn">
+          <div class="box-label">⚠️ Warning</div>
+          <p>Repeated pressurisation and depressurisation cycles cause <strong>metal fatigue</strong>. Older aircraft require careful structural inspection.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 5: Modes ===== -->
+    <div class="section" id="sec-modes">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(79,142,247,0.12);">⚙️</div>
+          <div class="section-meta">
+            <h2>5 — Pressurisation Modes</h2>
+            <p>Isobaric, constant differential, and control modes</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="modes-row">
+          <div class="mode-card">
+            <h4 style="color:var(--accent2);">Isobaric Mode</h4>
+            <p>Maintains a <strong>selected cabin altitude</strong> (e.g. 8,000 ft) as aircraft altitude changes. Used during normal operation until differential pressure limit is approached.</p>
+          </div>
+          <div class="mode-card">
+            <h4 style="color:var(--warn);">Constant Differential</h4>
+            <p>Maintains a <strong>fixed pressure difference</strong> between cabin and outside air. Protects the aircraft structure from exceeding maximum differential pressure.</p>
+          </div>
+        </div>
+
+        <h3 class="sub extra-text">Control Modes</h3>
+        <div class="cards-grid extra-text">
+          <div class="info-card">
+            <h4>Automatic</h4>
+            <p>Normal mode. Controller manages pressurisation automatically.</p>
+          </div>
+          <div class="info-card">
+            <h4>Standby</h4>
+            <p>Backup automatic control if primary fails.</p>
+          </div>
+          <div class="info-card">
+            <h4>Manual</h4>
+            <p>Crew directly controls outflow valve position. For abnormal ops or maintenance.</p>
+          </div>
+        </div>
+
+        <div class="box box-mem">
+          <div class="box-label">🧠 Memory Aid</div>
+          <p><strong>I</strong>sobaric = constant cabin altitude (normal). <strong>C</strong>onstant Differential = constant pressure gap (structural protection). Think: <strong>I</strong> hold <strong>altitude</strong>, <strong>C</strong> holds <strong>differential</strong>.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 6: Controller ===== -->
+    <div class="section" id="sec-controller">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(56,217,169,0.12);">🖥️</div>
+          <div class="section-meta">
+            <h2>6 — Cabin Pressure Controller</h2>
+            <p>The brain of the pressurisation system</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <p class="extra-text">The cabin pressure controller manages cabin pressure by <span class="kw">controlling the outflow valve</span>. It processes multiple inputs to determine the correct valve position.</p>
+
+        <h3 class="sub extra-text">Controller Inputs</h3>
+        <div class="cards-grid extra-text">
+          <div class="info-card">
+            <h4>Pressure Inputs</h4>
+            <ul>
+              <li>Cabin pressure</li>
+              <li>Ambient pressure</li>
+              <li>Barometric setting</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <h4>Altitude / Flight Data</h4>
+            <ul>
+              <li>Selected flight altitude</li>
+              <li>Landing field altitude</li>
+              <li>ADC data</li>
+              <li>FMS flight plan data</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="box box-key">
+          <div class="box-label">💡 Key Concept</div>
+          <p>Modern systems are <strong>mostly automatic</strong>. Manual control remains available for abnormal operation or maintenance.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 7: Outflow Valve ===== -->
+    <div class="section" id="sec-outflow">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(224,92,92,0.12);">🔧</div>
+          <div class="section-meta">
+            <h2>7 — Outflow Valve</h2>
+            <p>Primary pressure control component</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <p class="extra-text">The outflow valve is the <span class="kw">main control valve</span> for cabin pressure. It regulates how much air exits the cabin.</p>
+
+        <div class="valve-diagram">
+          <div class="valve-state close">
+            <div class="v-icon">🔴</div>
+            <h5>Valve Closes</h5>
+            <p>Cabin pressure <strong>increases</strong></p>
+          </div>
+          <div class="valve-state mod">
+            <div class="v-icon">🔵</div>
+            <h5>Valve Modulates</h5>
+            <p>Cabin pressure <strong>maintained</strong></p>
+          </div>
+          <div class="valve-state open">
+            <div class="v-icon">🟢</div>
+            <h5>Valve Opens</h5>
+            <p>Cabin pressure <strong>decreases</strong></p>
+          </div>
+        </div>
+
+        <h3 class="sub extra-text">Valve Actuator Types</h3>
+        <ul class="extra-text">
+          <li><span class="kw">Pneumatic</span></li>
+          <li><span class="kw">Electric</span></li>
+          <li><span class="kw">Electro-pneumatic</span></li>
+          <li>Some systems: <span class="kw2">AC motors</span> for normal, <span class="kw2">DC motors</span> for standby/manual</li>
+        </ul>
+
+        <div class="box box-recap">
+          <div class="box-label">⚡ Quick Recap</div>
+          <p>Outflow valve = <strong>primary pressure control</strong>. Closes → pressure up. Opens → pressure down. Modulates → pressure maintained.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 8: Safety Valves ===== -->
+    <div class="section exam-visible" id="sec-safety">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(224,92,92,0.15);">🛡️</div>
+          <div class="section-meta">
+            <h2>8 — Safety Valves & Protection Devices</h2>
+            <p>Critical safety components — high exam importance</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="cards-grid">
+          <div class="info-card" style="border-left: 3px solid var(--danger);">
+            <h4 style="color:var(--danger);">Cabin Air Safety Valve</h4>
+            <p>Prevents <strong>over-pressurisation</strong>.</p>
+            <p>Opens at: <span class="kw3">8–10 psi differential</span>.</p>
+          </div>
+          <div class="info-card" style="border-left: 3px solid var(--warn);">
+            <h4 style="color:var(--warn);">Negative Pressure Relief Valve</h4>
+            <p>Opens <em>inward</em> if outside pressure &gt; cabin pressure.</p>
+            <p>Prevents structural damage and door opening difficulty.</p>
+          </div>
+          <div class="info-card" style="border-left: 3px solid var(--accent);">
+            <h4 style="color:var(--accent);">Cabin Altitude Limiter</h4>
+            <p>Closes outflow valves if cabin pressure becomes too low.</p>
+            <p>Prevents excessive cabin altitude increase.</p>
+          </div>
+          <div class="info-card" style="border-left: 3px solid var(--purple);">
+            <h4 style="color:var(--purple);">Dump Valve</h4>
+            <p>Rapidly releases cabin pressure.</p>
+            <p>Used for: abnormal events, maintenance, emergencies.</p>
+          </div>
+        </div>
+
+        <div class="box box-danger">
+          <div class="box-label">⚠️ Danger — Safety Critical</div>
+          <p><strong>Excess Cabin Altitude Warning</strong> activates at ~<span class="kw3">10,000 ft</span> cabin altitude. Crew must respond — may require <strong>emergency oxygen</strong> to prevent hypoxia.</p>
+        </div>
+
+        <div class="box box-warn extra-text">
+          <div class="box-label">⚠️ Note</div>
+          <p>The <strong>negative pressure relief valve</strong> protects against the outside pressure being greater than inside — which could prevent doors from opening and cause structural damage.</p>
+        </div>
+
+        <div class="box box-recap">
+          <div class="box-label">⚡ Quick Recap</div>
+          <ul>
+            <li><strong>Safety Valve</strong>: opens at 8–10 psi → prevents over-pressure</li>
+            <li><strong>Neg. Pressure Relief</strong>: opens inward → protects structure</li>
+            <li><strong>Altitude Limiter</strong>: closes outflow → prevents low pressure</li>
+            <li><strong>Dump Valve</strong>: rapid release → emergencies / maintenance</li>
+            <li><strong>Cabin Altitude Warning</strong>: ~10,000 ft → oxygen required</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 9: Indications ===== -->
+    <div class="section" id="sec-indications">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(56,217,169,0.12);">📊</div>
+          <div class="section-meta">
+            <h2>9 — Cockpit Pressurisation Indications</h2>
+            <p>What the crew monitors on the flight deck</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <ul>
+          <li>Cabin altitude</li>
+          <li>Cabin rate of climb / descent</li>
+          <li>Cabin differential pressure</li>
+          <li>Outflow valve position</li>
+        </ul>
+
+        <div class="box box-key extra-text">
+          <div class="box-label">💡 Key Concept</div>
+          <p>Modern aircraft display pressurisation data on <span class="kw">EICAS</span> (Boeing) or <span class="kw">ECAM</span> (Airbus) via the ECS system pages.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 10: Flight Phase Operation ===== -->
+    <div class="section" id="sec-operation">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(155,114,245,0.12);">✈️</div>
+          <div class="section-meta">
+            <h2>10 — Pressurisation Through the Flight</h2>
+            <p>System behaviour at each phase of flight</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot" style="background:rgba(56,217,169,0.2); border-color:var(--accent2);">🛬</div>
+            <div class="tl-content">
+              <h4>On Ground</h4>
+              <p>WOW switch active. Safety valves held open. Aircraft not pressurised.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:rgba(79,142,247,0.2); border-color:var(--accent);">🛫</div>
+            <div class="tl-content">
+              <h4>Takeoff</h4>
+              <p>Throttle position + WOW signals initiate pressurisation. Outflow valves gradually close. Cabin pressure builds smoothly.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:rgba(155,114,245,0.2); border-color:var(--purple);">🌐</div>
+            <div class="tl-content">
+              <h4>In Flight</h4>
+              <p>Controller automatically follows the pressurisation schedule. Cabin altitude and differential pressure are regulated.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:rgba(240,167,66,0.2); border-color:var(--warn);">🛬</div>
+            <div class="tl-content">
+              <h4>Landing</h4>
+              <p>WOW switch activates again. Safety valves (and sometimes outflow valves) open. Ground pressurisation prevented in automatic mode.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="box box-key extra-text">
+          <div class="box-label">💡 Key Concept — WOW Switch</div>
+          <p>The <strong>Weight-On-Wheels (WOW)</strong> switch signals whether the aircraft is on the ground or airborne. It is critical to the pressurisation logic — preventing pressurisation on the ground in automatic mode.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 11: Troubleshooting ===== -->
+    <div class="section" id="sec-troubleshoot">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(240,167,66,0.12);">🔍</div>
+          <div class="section-meta">
+            <h2>11 — Troubleshooting Principles</h2>
+            <p>Approved maintenance approach for pressurisation faults</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="box box-warn">
+          <div class="box-label">⚠️ Warning</div>
+          <p><strong>Never assume all pressurisation systems are identical.</strong> Always use the aircraft manufacturer's approved maintenance manual and fault isolation procedure.</p>
+        </div>
+
+        <h3 class="sub extra-text">Approved Procedure</h3>
+        <ul class="extra-text">
+          <li>Use the aircraft manufacturer's <span class="kw">maintenance manual</span></li>
+          <li>Follow the <span class="kw">approved fault isolation procedure</span></li>
+          <li>Check possible causes step by step</li>
+          <li>Use <span class="kw2">pressurisation test kits</span> when required</li>
+          <li>A <span class="kw2">test flight</span> may be required after maintenance</li>
+        </ul>
+
+        <h3 class="sub">Common Faults</h3>
+        <div class="cards-grid">
+          <div class="info-card">
+            <h4>Control / Logic</h4>
+            <ul>
+              <li>Failure to pressurise</li>
+              <li>Failure to maintain pressurisation</li>
+              <li>Incorrect cabin rate</li>
+              <li>Controller or sensor faults</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <h4>Mechanical</h4>
+            <ul>
+              <li>Valve malfunction</li>
+              <li>Leakage from seals</li>
+              <li>Pressure vessel area leaks</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 12: Air Supply ===== -->
+    <div class="section" id="sec-supply">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(79,142,247,0.12);">💨</div>
+          <div class="section-meta">
+            <h2>12 — Air Supply Sources</h2>
+            <p>Bleed air, recirculation, turbo compressor, and air cycle systems</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="source-grid">
+          <div class="source-card">
+            <h4>Bleed Air</h4>
+            <p>Taken from the engine compressor section. Used for pressurisation, air conditioning, engine starting, and anti-icing.</p>
+            <p style="color:var(--danger); margin-top:5px !important; font-size:11px;">⚠ Reduces engine performance slightly.</p>
+          </div>
+          <div class="source-card green">
+            <h4>Recirculation Fans</h4>
+            <p>Large aircraft may reuse up to <strong>50%</strong> of cabin air. Reduces bleed air demand.</p>
+          </div>
+          <div class="source-card purple">
+            <h4>Jet Pump (Venturi)</h4>
+            <p>Bleed air through a venturi draws in outside air. Simple — no moving parts. Limited pressurisation volume; no direct cooling of ambient air.</p>
+          </div>
+          <div class="source-card orange">
+            <h4>Turbo Compressor</h4>
+            <p>Bleed air drives a turbine → turbine drives a compressor → compresses outside air. Common on some turboprop aircraft.</p>
+          </div>
+        </div>
+
+        <div class="box box-key extra-text">
+          <div class="box-label">💡 Air Cycle AC System</div>
+          <p>Common on <strong>transport aircraft</strong>. Uses bleed air, heat exchangers, a compressor, and an expansion turbine. Controls both <span class="kw">cabin temperature</span> and <span class="kw">pressurisation</span>.</p>
+        </div>
+
+        <div class="box box-recap">
+          <div class="box-label">⚡ Quick Recap</div>
+          <ul>
+            <li><strong>Bleed Air</strong>: from engine compressor — most common source</li>
+            <li><strong>Recirculation</strong>: up to 50% of cabin air reused</li>
+            <li><strong>Jet Pump</strong>: simple, no moving parts, limited capacity</li>
+            <li><strong>Turbo Compressor</strong>: common on some turboprops</li>
+            <li><strong>Air Cycle System</strong>: transport aircraft, controls temp + pressure</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 13: APU & Ground Air ===== -->
+    <div class="section" id="sec-apu">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(56,217,217,0.10);">🔌</div>
+          <div class="section-meta">
+            <h2>13 — APU & Ground Air Sources</h2>
+            <p>Ground-based bleed air alternatives</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <div class="cards-grid">
+          <div class="info-card">
+            <h4>APU (Auxiliary Power Unit)</h4>
+            <p>Provides bleed air for engine starting, air conditioning packs, and cabin cooling on the ground.</p>
+          </div>
+          <div class="info-card">
+            <h4>Ground Cart</h4>
+            <p>Portable air source connected to the aircraft pneumatic system. Reduces APU and engine use. Useful for troubleshooting.</p>
+          </div>
+          <div class="info-card">
+            <h4>Ground Conditioned Air</h4>
+            <p>Connected directly into the air distribution system. Aircraft packs do not need to operate — more economical during ground servicing or boarding.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SECTION 14: Distribution ===== -->
+    <div class="section" id="sec-distribution">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(155,114,245,0.12);">🌀</div>
+          <div class="section-meta">
+            <h2>14 — Air Distribution System</h2>
+            <p>Flow path and distribution components</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+
+        <h3 class="sub extra-text">Typical Airflow Path</h3>
+        <ol class="extra-text">
+          <li>Conditioned air enters through <span class="kw">ceiling vents</span></li>
+          <li>Air circulates through the cabin</li>
+          <li>Air exits through <span class="kw">floor-level vents</span></li>
+          <li>Air flows aft through lower areas</li>
+          <li>Air leaves through <span class="kw">outflow valves</span> near the aft pressure bulkhead</li>
+        </ol>
+
+        <div class="box box-key extra-text">
+          <div class="box-label">💡 Key Concept</div>
+          <p>Large aircraft use <strong>temperature zones</strong> — different cabin areas have separate temperature control.</p>
+        </div>
+
+        <h3 class="sub extra-text">Key Distribution Components</h3>
+        <div class="cards-grid extra-text">
+          <div class="info-card">
+            <h4>Control Components</h4>
+            <ul>
+              <li>Trim air valves</li>
+              <li>Mixing chambers</li>
+              <li>Temperature sensors</li>
+              <li>Overheat switches</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <h4>Flow Components</h4>
+            <ul>
+              <li>Inline fans</li>
+              <li>Jet pumps</li>
+              <li>Check valves</li>
+              <li>Gasper air nozzles</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== FLASHCARDS ===== -->
+    <div class="section exam-visible" id="sec-flashcards">
+      <div class="section-header open" role="button" tabindex="0" aria-expanded="true">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(155,114,245,0.15);">🔁</div>
+          <div class="section-meta">
+            <h2>Flashcards</h2>
+            <p>Click or press Space/Enter to flip — test yourself</p>
+          </div>
+        </div>
+        <span class="chevron open">▼</span>
+      </div>
+      <div class="section-body open">
+
+        <div class="flashcard-grid" id="flashcard-grid">
+          <!-- Flashcards injected by JS -->
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== QUIZ ===== -->
+    <div class="section exam-visible" id="sec-quiz">
+      <div class="section-header open" role="button" tabindex="0" aria-expanded="true">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(79,142,247,0.15);">🧪</div>
+          <div class="section-meta">
+            <h2>Self-Check Quiz</h2>
+            <p>Test your knowledge — select the correct answer</p>
+          </div>
+        </div>
+        <span class="chevron open">▼</span>
+      </div>
+      <div class="section-body open">
+        <div id="quiz-container"><!-- injected by JS --></div>
+        <button class="quiz-reset-btn" id="quiz-reset">↺ Reset All Questions</button>
+      </div>
+    </div>
+
+    <!-- ===== CHECKLIST ===== -->
+    <div class="section exam-visible" id="sec-checklist">
+      <div class="section-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="section-header-left">
+          <div class="section-icon" style="background:rgba(56,217,169,0.12);">✅</div>
+          <div class="section-meta">
+            <h2>Revision Checklist</h2>
+            <p>Tick off topics as you master them</p>
+          </div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="section-body">
+        <ul class="checklist" id="checklist">
+          <li><span class="check-box"></span>I know all standard sea-level pressure values in all units</li>
+          <li><span class="check-box"></span>I can define cabin altitude, differential pressure, and cabin rate</li>
+          <li><span class="check-box"></span>I understand the purpose of the pressurisation system</li>
+          <li><span class="check-box"></span>I know the typical differential pressure for small vs jet aircraft</li>
+          <li><span class="check-box"></span>I can explain isobaric mode vs constant differential mode</li>
+          <li><span class="check-box"></span>I know what inputs the cabin pressure controller uses</li>
+          <li><span class="check-box"></span>I understand outflow valve logic (open/close/modulate)</li>
+          <li><span class="check-box"></span>I can name all safety valves and their functions</li>
+          <li><span class="check-box"></span>I know at what cabin altitude the warning activates</li>
+          <li><span class="check-box"></span>I understand the role of the WOW switch</li>
+          <li><span class="check-box"></span>I know the pressurisation behaviour at each flight phase</li>
+          <li><span class="check-box"></span>I understand bleed air advantages and disadvantages</li>
+          <li><span class="check-box"></span>I can describe the cabin airflow path</li>
+          <li><span class="check-box"></span>I know the APU, ground cart, and ground conditioned air roles</li>
+          <li><span class="check-box"></span>I understand troubleshooting principles and common faults</li>
+        </ul>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ===== PROGRESS BAR ===== */
+  const progressBar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docH > 0 ? (window.scrollY / docH) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }, { passive: true });
+
+  /* ===== SIDEBAR TOGGLE (MOBILE) ===== */
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+  sidebarToggle.addEventListener('click', () => {
+    const isOpen = sidebar.classList.toggle('open');
+    sidebarOverlay.classList.toggle('show', isOpen);
+  });
+  sidebarOverlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('show');
+  });
+
+  /* ===== COLLAPSIBLE SECTIONS ===== */
+  function initCollapsibles() {
+    document.querySelectorAll('.section-header').forEach(header => {
+      header.addEventListener('click', () => toggleSection(header));
+      header.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSection(header); }
+      });
+    });
+  }
+
+  function toggleSection(header) {
+    const body = header.nextElementSibling;
+    const chevron = header.querySelector('.chevron');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    header.classList.toggle('open', !isOpen);
+    chevron.classList.toggle('open', !isOpen);
+    header.setAttribute('aria-expanded', String(!isOpen));
+  }
+
+  function expandAll() {
+    document.querySelectorAll('.section-header').forEach(h => {
+      const body = h.nextElementSibling;
+      const chevron = h.querySelector('.chevron');
+      body.classList.add('open');
+      h.classList.add('open');
+      chevron.classList.add('open');
+      h.setAttribute('aria-expanded', 'true');
+    });
+  }
+
+  function collapseAll() {
+    document.querySelectorAll('.section-header').forEach(h => {
+      const body = h.nextElementSibling;
+      const chevron = h.querySelector('.chevron');
+      body.classList.remove('open');
+      h.classList.remove('open');
+      chevron.classList.remove('open');
+      h.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  document.getElementById('expand-all-btn').addEventListener('click', expandAll);
+  document.getElementById('collapse-all-btn').addEventListener('click', collapseAll);
+
+  /* ===== FOCUS MODE ===== */
+  const focusBtn = document.getElementById('focus-btn');
+  let focusActive = false;
+  focusBtn.addEventListener('click', () => {
+    focusActive = !focusActive;
+    document.body.classList.toggle('focus-mode', focusActive);
+    focusBtn.classList.toggle('active', focusActive);
+    focusBtn.setAttribute('aria-pressed', String(focusActive));
+    if (focusActive) {
+      // Turn off exam mode if active
+      if (examActive) toggleExamMode();
+    }
+  });
+
+  /* ===== EXAM MODE ===== */
+  const examBtn = document.getElementById('exam-btn');
+  let examActive = false;
+  function toggleExamMode() {
+    examActive = !examActive;
+    document.body.classList.toggle('exam-mode', examActive);
+    examBtn.classList.toggle('active', examActive);
+    examBtn.setAttribute('aria-pressed', String(examActive));
+    if (examActive) {
+      if (focusActive) { focusActive = false; document.body.classList.remove('focus-mode'); focusBtn.classList.remove('active'); }
+      expandAll();
+    }
+  }
+  examBtn.addEventListener('click', toggleExamMode);
+
+  /* ===== SIDEBAR ACTIVE LINK ===== */
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('#toc-nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`#toc-nav a[href="#${entry.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // Close sidebar on link click (mobile)
+  navLinks.forEach(a => {
+    a.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('show');
+    });
+  });
+
+  /* ===== FLASHCARDS ===== */
+  const flashcardData = [
+    { q: 'What is standard sea-level pressure in psi?', a: '14.7 psi' },
+    { q: 'What is standard sea-level pressure in hPa?', a: '1013.2 hPa' },
+    { q: 'What is the standard temperature lapse rate?', a: '−2°C per 1,000 ft' },
+    { q: 'What is the typical maximum cabin altitude?', a: '8,000 ft or lower' },
+    { q: 'At what cabin altitude does the warning typically activate?', a: 'Around 10,000 ft' },
+    { q: 'What is the typical cabin rate of climb?', a: '300–500 fpm' },
+    { q: 'At what differential pressure does the safety valve open?', a: '8–10 psi differential' },
+    { q: 'What does closing the outflow valve do to cabin pressure?', a: 'Cabin pressure increases' },
+    { q: 'What mode maintains a fixed cabin altitude?', a: 'Isobaric mode' },
+    { q: 'What mode protects the structure from exceeding max diff. pressure?', a: 'Constant Differential mode' },
+    { q: 'What is the negative pressure relief valve\'s function?', a: 'Opens inward if outside pressure exceeds cabin pressure — protects structure and doors' },
+    { q: 'What switch signals the aircraft is on the ground?', a: 'WOW (Weight-On-Wheels) switch' },
+    { q: 'Where is cabin pressure primarily controlled?', a: 'At the outflow valve (controls air leaving the cabin)' },
+    { q: 'What is the tropopause temperature approximately?', a: 'Approximately −57°C' },
+    { q: 'What is the typical differential pressure for a jet aircraft?', a: 'Approximately 9 psi' },
+    { q: 'Where is bleed air sourced from?', a: 'The engine compressor section' },
+  ];
+
+  const fcGrid = document.getElementById('flashcard-grid');
+  flashcardData.forEach((card, i) => {
+    const el = document.createElement('div');
+    el.className = 'flashcard';
+    el.tabIndex = 0;
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', `Flashcard ${i + 1}: ${card.q}. Press to flip.`);
+    el.innerHTML = `
+      <div class="fc-inner">
+        <div class="fc-front">
+          <div class="q-label">Question ${i + 1}</div>
+          <div class="q-text">${card.q}</div>
+          <div class="tap-hint">Click / Space to reveal</div>
+        </div>
+        <div class="fc-back">
+          <div class="a-label">Answer</div>
+          <div class="a-text">${card.a}</div>
+        </div>
+      </div>`;
+    el.addEventListener('click', () => el.classList.toggle('flipped'));
+    el.addEventListener('keydown', e => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.classList.toggle('flipped'); }
+    });
+    fcGrid.appendChild(el);
+  });
+
+  /* ===== QUIZ ===== */
+  const quizData = [
+    {
+      q: 'What is the standard sea-level atmospheric pressure?',
+      options: ['12.2 psi', '14.7 psi', '29.92 psi', '1013.2 psi'],
+      correct: 1,
+      explanation: '14.7 psi is standard sea-level pressure. 29.92 is in inHg and 1013.2 in hPa.'
+    },
+    {
+      q: 'What is the typical maximum cabin altitude maintained during normal flight?',
+      options: ['6,000 ft', '10,000 ft', '8,000 ft', '12,500 ft'],
+      correct: 2,
+      explanation: 'The pressurisation system maintains cabin altitude at approximately 8,000 ft or lower during normal operation.'
+    },
+    {
+      q: 'What happens when the outflow valve closes?',
+      options: ['Cabin pressure decreases', 'Cabin pressure increases', 'Cabin pressure remains constant', 'Outside air is dumped'],
+      correct: 1,
+      explanation: 'Closing the outflow valve restricts air leaving the cabin, so cabin pressure increases.'
+    },
+    {
+      q: 'At what cabin altitude does the excess cabin altitude warning typically activate?',
+      options: ['8,000 ft', '12,000 ft', '10,000 ft', '15,000 ft'],
+      correct: 2,
+      explanation: 'The excess cabin altitude warning activates at around 10,000 ft, requiring crew action — potentially including emergency oxygen.'
+    },
+    {
+      q: 'What is the function of the negative pressure relief valve?',
+      options: [
+        'Prevents cabin pressure from rising above limits',
+        'Opens inward if outside pressure exceeds cabin pressure',
+        'Dumps cabin pressure rapidly in emergencies',
+        'Controls the rate of pressurisation'
+      ],
+      correct: 1,
+      explanation: 'The negative pressure relief valve opens inward to protect the structure and prevent door difficulty when outside pressure is greater than cabin pressure.'
+    },
+    {
+      q: 'Which pressurisation mode protects the aircraft structure from exceeding maximum differential pressure?',
+      options: ['Isobaric mode', 'Manual mode', 'Standby mode', 'Constant differential mode'],
+      correct: 3,
+      explanation: 'Constant Differential mode maintains a fixed pressure difference, protecting the structure from excessive loads.'
+    },
+    {
+      q: 'What is the standard temperature lapse rate in the troposphere?',
+      options: ['−1°C per 1,000 ft', '−2°C per 1,000 ft', '−3°C per 1,000 ft', '−5°C per 1,000 ft'],
+      correct: 1,
+      explanation: 'The standard lapse rate is approximately −2°C per 1,000 ft in the troposphere.'
+    },
+    {
+      q: 'At what differential pressure does the cabin air safety valve typically open?',
+      options: ['3–5 psi', '6–7 psi', '8–10 psi', '12–14 psi'],
+      correct: 2,
+      explanation: 'The cabin air safety valve opens at a preset differential pressure, typically in the 8–10 psi range, to prevent over-pressurisation.'
+    },
+    {
+      q: 'What is the primary reason bleed air use is a disadvantage?',
+      options: [
+        'It is too cold for cabin use',
+        'It contains contaminants',
+        'It reduces engine performance slightly',
+        'It requires complex filtration'
+      ],
+      correct: 2,
+      explanation: 'Bleeding air from the engine compressor reduces overall engine performance slightly.'
+    },
+    {
+      q: 'What is the role of the WOW (Weight-On-Wheels) switch in pressurisation?',
+      options: [
+        'Controls the outflow valve position',
+        'Signals whether the aircraft is on the ground or airborne',
+        'Sets the barometric reference',
+        'Monitors differential pressure'
+      ],
+      correct: 1,
+      explanation: 'The WOW switch signals whether the aircraft is on the ground, which is critical to pressurisation logic — preventing pressurisation on the ground in automatic mode.'
+    }
+  ];
+
+  const quizContainer = document.getElementById('quiz-container');
+
+  function buildQuiz() {
+    quizContainer.innerHTML = '';
+    quizData.forEach((item, qi) => {
+      const block = document.createElement('div');
+      block.className = 'quiz-block';
+      block.dataset.index = qi;
+
+      const optionsHTML = item.options.map((opt, oi) =>
+        `<li><button data-option="${oi}" aria-label="Option ${oi + 1}: ${opt}">${opt}</button></li>`
+      ).join('');
+
+      block.innerHTML = `
+        <div class="q-num">Question ${qi + 1} of ${quizData.length}</div>
+        <div class="q-text">${item.q}</div>
+        <ul class="quiz-options">${optionsHTML}</ul>
+        <div class="quiz-feedback"></div>`;
+
+      block.querySelectorAll('.quiz-options button').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const selectedIdx = parseInt(this.dataset.option);
+          const allBtns = block.querySelectorAll('.quiz-options button');
+          allBtns.forEach(b => b.disabled = true);
+
+          const feedback = block.querySelector('.quiz-feedback');
+          if (selectedIdx === item.correct) {
+            this.classList.add('correct');
+            feedback.textContent = '✓ Correct! ' + item.explanation;
+            feedback.className = 'quiz-feedback correct show';
+          } else {
+            this.classList.add('incorrect');
+            allBtns[item.correct].classList.add('correct');
+            feedback.textContent = '✗ Incorrect. ' + item.explanation;
+            feedback.className = 'quiz-feedback incorrect show';
+          }
+        });
+      });
+
+      quizContainer.appendChild(block);
+    });
+  }
+
+  buildQuiz();
+
+  document.getElementById('quiz-reset').addEventListener('click', buildQuiz);
+
+  /* ===== CHECKLIST ===== */
+  document.querySelectorAll('#checklist li').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('done');
+      const box = item.querySelector('.check-box');
+      box.textContent = item.classList.contains('done') ? '✓' : '';
+    });
+    item.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
+    });
+    item.tabIndex = 0;
+    item.setAttribute('role', 'checkbox');
+    item.setAttribute('aria-checked', 'false');
+  });
+
+  // Update aria-checked on click
+  document.querySelectorAll('#checklist li').forEach(item => {
+    item.addEventListener('click', () => {
+      item.setAttribute('aria-checked', item.classList.contains('done') ? 'true' : 'false');
+    });
+  });
+
+  /* ===== INIT ===== */
+  initCollapsibles();
+
+})();
+</script>
+</body>
+</html>
