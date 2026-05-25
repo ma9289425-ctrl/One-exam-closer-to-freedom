@@ -1,0 +1,2524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ATA 35 — Oxygen Systems | Module 11.15 Revision</title>
+<style>
+  /* ============================================================
+     RESET & BASE
+  ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-base:       #141820;
+    --bg-surface:    #1c2130;
+    --bg-card:       #232b3e;
+    --bg-card-hover: #29334a;
+    --bg-sidebar:    #181e2e;
+    --border:        #2e3a52;
+    --border-light:  #3a4a66;
+
+    --text-primary:   #e8edf5;
+    --text-secondary: #9aabc2;
+    --text-muted:     #5e7292;
+
+    --accent:        #4f8ef7;
+    --accent-dim:    #1e3a6e;
+    --accent-hover:  #6aa0ff;
+
+    --green:         #3ecf8e;
+    --green-dim:     #0e3526;
+    --yellow:        #f5c542;
+    --yellow-dim:    #3a2e0a;
+    --red:           #f05a5a;
+    --red-dim:       #3a1212;
+    --purple:        #a78bfa;
+    --purple-dim:    #2d1f5e;
+    --teal:          #38bdf8;
+    --teal-dim:      #0c2a3a;
+
+    --radius:    10px;
+    --radius-lg: 16px;
+    --shadow:    0 4px 24px rgba(0,0,0,0.45);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.35);
+
+    --sidebar-w: 272px;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  /* ============================================================
+     PROGRESS BAR
+  ============================================================ */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    z-index: 9999;
+    transition: width 0.1s linear;
+  }
+
+  /* ============================================================
+     TOP BAR
+  ============================================================ */
+  #topbar {
+    position: fixed;
+    top: 3px; left: 0; right: 0;
+    height: 54px;
+    background: rgba(20,24,32,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 900;
+    gap: 12px;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  #menu-toggle {
+    display: none;
+    background: none;
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    border-radius: 6px;
+    width: 36px; height: 36px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .topbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .topbar-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .ctrl-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: var(--font);
+    font-weight: 500;
+  }
+  .ctrl-btn:hover, .ctrl-btn:focus {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+    outline: none;
+  }
+  .ctrl-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ============================================================
+     LAYOUT
+  ============================================================ */
+  #layout {
+    display: flex;
+    padding-top: 57px;
+    min-height: 100vh;
+  }
+
+  /* ============================================================
+     SIDEBAR
+  ============================================================ */
+  #sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    position: fixed;
+    top: 57px;
+    left: 0;
+    bottom: 0;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 800;
+    padding: 16px 0 32px;
+    transition: transform 0.3s ease;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-header {
+    padding: 6px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .sidebar-module {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: 3px;
+  }
+
+  .nav-group { margin-bottom: 2px; }
+
+  .nav-group-label {
+    padding: 7px 18px 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 18px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: all 0.18s;
+    line-height: 1.3;
+  }
+  .nav-link:hover, .nav-link:focus {
+    color: var(--text-primary);
+    background: rgba(79,142,247,0.08);
+    border-left-color: var(--accent);
+    outline: none;
+  }
+  .nav-link.active {
+    color: var(--accent);
+    background: rgba(79,142,247,0.12);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+  .nav-link .nav-icon { font-size: 14px; flex-shrink: 0; }
+
+  .nav-sub-link {
+    padding-left: 38px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .nav-sub-link:hover, .nav-sub-link:focus {
+    color: var(--text-secondary);
+    border-left-color: var(--border-light);
+  }
+
+  /* ============================================================
+     MAIN CONTENT
+  ============================================================ */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-width: 0;
+    padding: 32px 28px 64px;
+    max-width: 900px;
+  }
+
+  /* ============================================================
+     PAGE HERO
+  ============================================================ */
+  .page-hero {
+    background: linear-gradient(135deg, #1a2540 0%, #0f1a30 60%, #121c2e 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px 32px 28px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 70%);
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .page-hero h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+
+  .page-hero p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    max-width: 560px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .hero-tag {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  /* ============================================================
+     SECTIONS
+  ============================================================ */
+  .section {
+    margin-bottom: 36px;
+    scroll-margin-top: 72px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    user-select: none;
+    padding: 14px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.2s;
+  }
+  .section-header:hover {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+  }
+  .section-header:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .section-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .section-title-block { flex: 1; min-width: 0; }
+
+  .section-number {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .section-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .section-desc {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .collapse-icon {
+    color: var(--text-muted);
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: transform 0.25s;
+    margin-top: 2px;
+    font-style: normal;
+  }
+  .section-header[aria-expanded="false"] .collapse-icon { transform: rotate(-90deg); }
+
+  .section-body {
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+  }
+  .section-body.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+  }
+
+  /* ============================================================
+     CARDS
+  ============================================================ */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border-light); }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .card-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* ============================================================
+     SPECIAL BOXES
+  ============================================================ */
+  .box {
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border-left: 4px solid;
+    font-size: 14px;
+  }
+  .box-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 6px;
+  }
+
+  .box-recap {
+    background: rgba(79,142,247,0.08);
+    border-color: var(--accent);
+    color: var(--text-secondary);
+  }
+  .box-recap .box-title { color: var(--accent); }
+
+  .box-warning {
+    background: rgba(245,197,66,0.08);
+    border-color: var(--yellow);
+    color: var(--text-secondary);
+  }
+  .box-warning .box-title { color: var(--yellow); }
+
+  .box-danger {
+    background: rgba(240,90,90,0.08);
+    border-color: var(--red);
+    color: var(--text-secondary);
+  }
+  .box-danger .box-title { color: var(--red); }
+
+  .box-key {
+    background: rgba(167,139,250,0.08);
+    border-color: var(--purple);
+    color: var(--text-secondary);
+  }
+  .box-key .box-title { color: var(--purple); }
+
+  .box-tip {
+    background: rgba(62,207,142,0.08);
+    border-color: var(--green);
+    color: var(--text-secondary);
+  }
+  .box-tip .box-title { color: var(--green); }
+
+  /* ============================================================
+     LISTS
+  ============================================================ */
+  ul.bullet-list {
+    list-style: none;
+    padding: 0;
+  }
+  ul.bullet-list li {
+    padding: 5px 0 5px 20px;
+    position: relative;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  ul.bullet-list li::before {
+    content: '›';
+    position: absolute;
+    left: 4px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  ul.check-list { list-style: none; padding: 0; }
+  ul.check-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 7px 8px;
+    transition: background 0.15s;
+  }
+  ul.check-list li:hover { background: rgba(255,255,255,0.03); }
+  ul.check-list li .chk {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border-light);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 11px;
+  }
+  ul.check-list li.checked .chk {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+  ul.check-list li.checked > span:last-child {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  /* ============================================================
+     COMPARISON TABLE
+  ============================================================ */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-bottom: 14px;
+  }
+  .compare-table th {
+    background: var(--bg-surface);
+    color: var(--accent);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border);
+    font-weight: 700;
+  }
+  .compare-table td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  .compare-table tr:hover td { background: rgba(79,142,247,0.04); }
+
+  /* ============================================================
+     KEY TERM PILL
+  ============================================================ */
+  .term {
+    display: inline;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .hl { color: var(--yellow); font-weight: 600; }
+  .hl-green { color: var(--green); font-weight: 600; }
+  .hl-red { color: var(--red); font-weight: 600; }
+
+  /* ============================================================
+     FLASHCARDS
+  ============================================================ */
+  .flashcard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .flashcard {
+    perspective: 900px;
+    height: 150px;
+    cursor: pointer;
+  }
+
+  .flashcard-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.45s ease;
+    border-radius: var(--radius);
+  }
+
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+
+  .flashcard-front, .flashcard-back {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .flashcard-front {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+  .flashcard-front:hover { border-color: var(--accent); }
+
+  .flashcard-back {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    transform: rotateY(180deg);
+  }
+
+  .fc-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .flashcard-front .fc-label { color: var(--text-muted); }
+  .flashcard-back .fc-label { color: var(--accent); }
+
+  .fc-q {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+
+  .fc-a {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.45;
+  }
+
+  /* ============================================================
+     QUIZ
+  ============================================================ */
+  .quiz-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .quiz-q {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .quiz-q-num {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .quiz-options { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+  .quiz-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-size: 14px;
+    color: var(--text-secondary);
+    user-select: none;
+  }
+  .quiz-option:hover:not(.disabled) {
+    background: var(--bg-card-hover);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+  }
+  .quiz-option:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .quiz-option.correct {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .quiz-option.incorrect {
+    background: var(--red-dim);
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .quiz-option.disabled { cursor: default; pointer-events: none; }
+  .quiz-option.reveal-correct {
+    border-color: var(--green);
+    color: var(--green);
+    opacity: 0.7;
+  }
+
+  .opt-letter {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--text-secondary);
+    transition: all 0.18s;
+  }
+  .quiz-option.correct .opt-letter { background: var(--green); color: #fff; }
+  .quiz-option.incorrect .opt-letter { background: var(--red); color: #fff; }
+  .quiz-option.reveal-correct .opt-letter { background: var(--green); color: #fff; }
+
+  .quiz-feedback {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.fb-correct { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+  .quiz-feedback.fb-incorrect { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+
+  .quiz-reset-btn {
+    margin-top: 24px;
+    padding: 9px 20px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--font);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .quiz-reset-btn:hover { background: var(--bg-card); color: var(--text-primary); }
+  .quiz-score { font-size: 13px; color: var(--text-muted); margin-top: 12px; font-weight: 500; }
+
+  /* ============================================================
+     IMAGE CARD
+  ============================================================ */
+  .img-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+
+  .img-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .img-scroll-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .img-scroll-wrapper img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow);
+  }
+
+  .img-caption {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    text-align: center;
+    font-style: italic;
+  }
+
+  /* ============================================================
+     SYSTEM TYPE CARDS
+  ============================================================ */
+  .sys-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .sys-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: all 0.2s;
+  }
+  .sys-card:hover { border-color: var(--border-light); transform: translateY(-2px); }
+
+  .sys-card-icon { font-size: 22px; margin-bottom: 8px; }
+  .sys-card-name { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .sys-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ============================================================
+     STEP LIST
+  ============================================================ */
+  .step-list { list-style: none; padding: 0; }
+  .step-list li {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    align-items: flex-start;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .step-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ============================================================
+     KEY TERMS GRID
+  ============================================================ */
+  .terms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .term-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .term-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .term-card-def {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  /* ============================================================
+     FOCUS MODE / EXAM MODE
+  ============================================================ */
+  body.focus-mode .extra-text { display: none !important; }
+  body.focus-mode .box-recap,
+  body.focus-mode .box-key,
+  body.focus-mode .box-warning,
+  body.focus-mode .box-danger { display: block !important; }
+
+  body.exam-mode .section-body > *:not(.box-recap):not(.quiz-section):not(.flashcard-section):not(.box-warning):not(.box-danger) {
+    display: none !important;
+  }
+  body.exam-mode .box-recap,
+  body.exam-mode .quiz-section,
+  body.exam-mode .flashcard-section,
+  body.exam-mode .box-warning,
+  body.exam-mode .box-danger { display: block !important; }
+
+  /* ============================================================
+     DIVIDER
+  ============================================================ */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 18px 0;
+  }
+
+  /* ============================================================
+     SIDEBAR OVERLAY (MOBILE)
+  ============================================================ */
+  #sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 799;
+  }
+
+  /* ============================================================
+     RESPONSIVE
+  ============================================================ */
+  @media (max-width: 820px) {
+    #menu-toggle { display: flex; }
+
+    #sidebar {
+      transform: translateX(-100%);
+    }
+    #sidebar.open {
+      transform: translateX(0);
+    }
+    #sidebar-overlay.show { display: block; }
+
+    #main {
+      margin-left: 0;
+      padding: 20px 16px 48px;
+    }
+
+    .card-2col { grid-template-columns: 1fr; }
+
+    .page-hero h1 { font-size: 21px; }
+    .page-hero { padding: 22px 20px 20px; }
+
+    .topbar-sub { display: none; }
+    .ctrl-btn { padding: 5px 7px; font-size: 10.5px; }
+
+    .flashcard-grid { grid-template-columns: 1fr 1fr; }
+    .sys-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 500px) {
+    .flashcard-grid { grid-template-columns: 1fr; }
+    .sys-grid { grid-template-columns: 1fr; }
+    .card-2col { grid-template-columns: 1fr; }
+    .compare-table { font-size: 12px; }
+    .compare-table td, .compare-table th { padding: 8px 10px; }
+  }
+
+  /* ============================================================
+     FOCUS STATES
+  ============================================================ */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ============================================================
+     SCROLLBAR (GLOBAL)
+  ============================================================ */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+  /* ============================================================
+     MISC UTILITIES
+  ============================================================ */
+  p { color: var(--text-secondary); font-size: 14px; line-height: 1.7; margin-bottom: 10px; }
+  h3 { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; margin-top: 6px; }
+  h4 { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+  .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+  .badge-yellow { background: var(--yellow-dim); color: var(--yellow); border: 1px solid var(--yellow); }
+  .badge-blue { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+
+  .inline-flex { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div id="progress-bar" role="progressbar" aria-label="Reading progress"></div>
+
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebar-overlay" aria-hidden="true"></div>
+
+<!-- TOP BAR -->
+<header id="topbar">
+  <div class="topbar-left">
+    <button id="menu-toggle" aria-label="Toggle navigation menu" aria-expanded="false">☰</button>
+    <div>
+      <div class="topbar-title">✈ ATA 35 — Oxygen Systems</div>
+      <div class="topbar-sub">Module 11.15 · Part 2 · CLO 4 — EASA Part-66</div>
+    </div>
+  </div>
+  <div class="topbar-controls">
+    <button class="ctrl-btn" id="btn-expand-all" title="Expand or collapse all sections">⊞ Expand All</button>
+    <button class="ctrl-btn" id="btn-focus" title="Show only key points">🔍 Focus Mode</button>
+    <button class="ctrl-btn" id="btn-exam" title="Show only exam elements">📋 Exam Mode</button>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav id="sidebar" aria-label="Page navigation">
+  <div class="sidebar-header">
+    <h2>Navigation</h2>
+    <div class="sidebar-module">Module 11.15 · ATA 35</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Overview</div>
+    <a class="nav-link" href="#hero"><span class="nav-icon">🏠</span>Introduction</a>
+    <a class="nav-link" href="#s-systems"><span class="nav-icon">🗂</span>System Types</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">4. Supply Regulation</div>
+    <a class="nav-link" href="#s4-1"><span class="nav-icon">🔵</span>4.1 Continuous-Flow</a>
+    <a class="nav-link nav-sub-link" href="#s4-1-1">↳ System Layout</a>
+    <a class="nav-link" href="#s4-2"><span class="nav-icon">🟢</span>4.2 Demand-Flow</a>
+    <a class="nav-link nav-sub-link" href="#s4-2-1">↳ 4.2.1 Diluter-Demand</a>
+    <a class="nav-link nav-sub-link" href="#s4-2-2">↳ 4.2.2 Pressure-Demand</a>
+    <a class="nav-link nav-sub-link" href="#s4-2-3">↳ 4.2.3 Cockpit Layout</a>
+    <a class="nav-link" href="#s4-3"><span class="nav-icon">⚗️</span>4.3 Chemical Oxygen</a>
+    <a class="nav-link" href="#s4-4"><span class="nav-icon">⚡</span>4.4 EDS</a>
+    <a class="nav-link" href="#s4-5"><span class="nav-icon">❄️</span>4.5 LOX Systems</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">5. Indication & Warnings</div>
+    <a class="nav-link" href="#s5"><span class="nav-icon">🟡</span>5. Blowout Disks</a>
+    <a class="nav-link nav-sub-link" href="#s5-1">↳ 5.1 Flow Indicators</a>
+    <a class="nav-link nav-sub-link" href="#s5-2">↳ 5.2 Pressure</a>
+    <a class="nav-link nav-sub-link" href="#s5-3">↳ 5.3 Pulse Oximeter</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">6. Maintenance</div>
+    <a class="nav-link" href="#s6"><span class="nav-icon">🔧</span>6. Overview</a>
+    <a class="nav-link nav-sub-link" href="#s6-1">↳ 6.1 Leak Testing</a>
+    <a class="nav-link nav-sub-link" href="#s6-2">↳ 6.2 Draining</a>
+    <a class="nav-link nav-sub-link" href="#s6-3">↳ 6.3 Purging</a>
+    <a class="nav-link nav-sub-link" href="#s6-4">↳ 6.4 Masks & Hoses</a>
+    <a class="nav-link nav-sub-link" href="#s6-5">↳ 6.5 Tubing & Fittings</a>
+    <a class="nav-link nav-sub-link" href="#s6-6">↳ 6.6 Safety</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Exam Prep</div>
+    <a class="nav-link" href="#s-terms"><span class="nav-icon">📖</span>Key Terms</a>
+    <a class="nav-link" href="#s-flash"><span class="nav-icon">🔁</span>Flashcards</a>
+    <a class="nav-link" href="#s-quiz"><span class="nav-icon">🧪</span>Self-Check Quiz</a>
+    <a class="nav-link" href="#s-checklist"><span class="nav-icon">✅</span>Revision Checklist</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- HERO -->
+  <div id="hero" class="page-hero">
+    <div class="hero-badge">✈ EASA Part-66 · Module 11.15 · ATA 35</div>
+    <h1>Oxygen Systems<br>Supply Regulation, Indication & Maintenance</h1>
+    <p>Part 2 Revision Guide — CLO 4. Covers system types, regulation principles, indication methods, and maintenance procedures.</p>
+    <div class="hero-meta">
+      <span class="hero-tag">📦 Section 4 — Supply Regulation</span>
+      <span class="hero-tag">📊 Section 5 — Indication & Warnings</span>
+      <span class="hero-tag">🔧 Section 6 — Maintenance</span>
+    </div>
+  </div>
+
+  <!-- SYSTEM TYPES OVERVIEW -->
+  <section class="section" id="s-systems">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-systems">
+      <span class="section-icon">🗂</span>
+      <div class="section-title-block">
+        <div class="section-number">Overview</div>
+        <div class="section-title">Oxygen System Types at a Glance</div>
+        <div class="section-desc">Compare the five major system types used in aviation</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-systems">
+      <div class="sys-grid extra-text">
+        <div class="sys-card">
+          <div class="sys-card-icon">🔵</div>
+          <div class="sys-card-name">Continuous-Flow</div>
+          <div class="sys-card-desc">Oxygen flows constantly. Simple and reliable. Less efficient — wastes O₂ during exhalation.</div>
+        </div>
+        <div class="sys-card">
+          <div class="sys-card-icon">🟢</div>
+          <div class="sys-card-name">Demand-Flow</div>
+          <div class="sys-card-desc">Oxygen delivered only during inhalation. More efficient. Two subtypes: diluter-demand and pressure-demand.</div>
+        </div>
+        <div class="sys-card">
+          <div class="sys-card-icon">⚗️</div>
+          <div class="sys-card-name">Chemical (Solid-State)</div>
+          <div class="sys-card-desc">Oxygen generated by chemical reaction. Compact, lightweight. Used for passenger emergency oxygen.</div>
+        </div>
+        <div class="sys-card">
+          <div class="sys-card-icon">⚡</div>
+          <div class="sys-card-name">Electronic Pulse Demand</div>
+          <div class="sys-card-desc">Electronically detects inhalation and delivers timed pulses. Extends oxygen duration.</div>
+        </div>
+        <div class="sys-card">
+          <div class="sys-card-icon">❄️</div>
+          <div class="sys-card-name">LOX (Liquid Oxygen)</div>
+          <div class="sys-card-desc">Stores oxygen in liquid form, converts to gas before delivery. Mainly military use.</div>
+        </div>
+      </div>
+
+      <div class="box box-key">
+        <div class="box-title">💡 Key Design Factors</div>
+        Aircraft type · Operating altitude · Whether the aircraft is pressurized — these determine which system is used.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4.1 CONTINUOUS FLOW -->
+  <section class="section" id="s4-1">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-4-1">
+      <span class="section-icon">🔵</span>
+      <div class="section-title-block">
+        <div class="section-number">Section 4.1</div>
+        <div class="section-title">Continuous-Flow Systems</div>
+        <div class="section-desc">Oxygen flows constantly once the valve is opened — simple but less efficient</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-4-1">
+
+      <div class="card-2col extra-text">
+        <div class="card">
+          <div class="card-title">✅ Advantages</div>
+          <ul class="bullet-list">
+            <li>Simple design</li>
+            <li>Reliable operation</li>
+            <li>Common in smaller aircraft</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">❌ Disadvantages</div>
+          <ul class="bullet-list">
+            <li>Wastes oxygen during exhalation</li>
+            <li>Shorter oxygen duration</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card extra-text">
+        <div class="card-title">🔧 Regulator Types</div>
+        <table class="compare-table">
+          <tr>
+            <th>Type</th>
+            <th>How It Works</th>
+          </tr>
+          <tr>
+            <td><span class="term">Manual</span></td>
+            <td>Crew adjusts oxygen flow manually as altitude changes</td>
+          </tr>
+          <tr>
+            <td><span class="term">Automatic</span></td>
+            <td>Uses an <strong>aneroid device</strong> that automatically increases flow as altitude increases</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card extra-text">
+        <div class="card-title">😷 Rebreather Systems</div>
+        <p>Rebreather masks capture exhaled oxygen that is still usable, store it in a bag or reservoir, and allow it to be inhaled again — reducing O₂ waste.</p>
+      </div>
+
+      <div class="card extra-text">
+        <div class="card-title">🧑‍✈️ Passenger Emergency Oxygen (Pressurized Airliners)</div>
+        <ul class="bullet-list">
+          <li>Masks stored in overhead Passenger Service Units (PSUs)</li>
+          <li>Cabin depressurization automatically deploys masks</li>
+          <li>Pulling the mask activates oxygen flow</li>
+          <li>Masks fit snugly but are <strong>not</strong> airtight — allow cabin air mixing via vent holes</li>
+        </ul>
+      </div>
+
+      <!-- 4.1.1 IMAGE SECTION -->
+      <div id="s4-1-1" class="img-card" style="scroll-margin-top:72px;">
+        <div class="img-card-title">🖼 4.1.1 — Continuous-Flow System Layout</div>
+        <div class="img-scroll-wrapper">
+          <img
+            src="image/oxygen-system-layout.jpeg"
+            alt="Continuous-flow aircraft oxygen system layout showing cylinder, valves, regulator, filters, gauge, blowout disk, calibrated orifices, and mask outlets"
+            style="max-width:100%; height:auto; display:block; border-radius:8px; border:1px solid #2e3a52; box-shadow:0 4px 24px rgba(0,0,0,0.45);"
+          />
+        </div>
+        <div class="img-caption">
+          Typical continuous-flow oxygen system layout showing storage, regulation, charging, indication, and mask outlet distribution.
+        </div>
+
+        <hr class="divider">
+        <div class="card-title" style="margin-bottom:12px;">🔩 Key Components Shown</div>
+        <div class="terms-grid" style="margin-bottom:0;">
+          <div class="term-card"><div class="term-card-name">Oxygen Cylinder</div><div class="term-card-def">Stores high-pressure oxygen for the system</div></div>
+          <div class="term-card"><div class="term-card-name">Pressure Reducer</div><div class="term-card-def">Steps down high cylinder pressure for distribution</div></div>
+          <div class="term-card"><div class="term-card-name">Pressure Regulator</div><div class="term-card-def">Maintains correct delivery pressure to masks</div></div>
+          <div class="term-card"><div class="term-card-name">Filters</div><div class="term-card-def">Remove contaminants — located at charging and distribution points</div></div>
+          <div class="term-card"><div class="term-card-name">Shutoff Valve</div><div class="term-card-def">Isolates the cylinder from the distribution system</div></div>
+          <div class="term-card"><div class="term-card-name">Check Valve</div><div class="term-card-def">Prevents backflow; one-directional flow only</div></div>
+          <div class="term-card"><div class="term-card-name">Charging Valve</div><div class="term-card-def">Ground connection for refilling the cylinder</div></div>
+          <div class="term-card"><div class="term-card-name">Pressure Gauge</div><div class="term-card-def">Indicates remaining oxygen quantity</div></div>
+          <div class="term-card"><div class="term-card-name">Pressure Relief Valve</div><div class="term-card-def">Releases excess pressure to prevent system damage</div></div>
+          <div class="term-card"><div class="term-card-name">Green Blowout Disk</div><div class="term-card-def">Ruptures to indicate overpressure release — missing disk = investigate before flight</div></div>
+          <div class="term-card"><div class="term-card-name">Calibrated Orifices</div><div class="term-card-def">Control the precise flow rate to each mask outlet</div></div>
+          <div class="term-card"><div class="term-card-name">Mask Outlets</div><div class="term-card-def">Delivery points where masks connect to receive oxygen flow</div></div>
+        </div>
+      </div>
+
+      <div class="box box-recap">
+        <div class="box-title">⚡ Quick Recap — Continuous-Flow</div>
+        Oxygen flows <strong>continuously</strong> once the valve is opened — even during exhalation. Simple and reliable but <strong>less efficient</strong> than demand-flow systems.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 4.2 DEMAND-FLOW -->
+  <section class="section" id="s4-2">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-4-2">
+      <span class="section-icon">🟢</span>
+      <div class="section-title-block">
+        <div class="section-number">Section 4.2</div>
+        <div class="section-title">Demand-Flow Systems</div>
+        <div class="section-desc">Oxygen flows only during inhalation — more efficient than continuous-flow</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-4-2">
+
+      <div class="box box-key extra-text">
+        <div class="box-title">💡 Core Principle</div>
+        When the user <strong>inhales</strong> → oxygen flows. When the user <strong>exhales</strong> → oxygen flow stops. Result: oxygen is conserved and duration is extended.
+      </div>
+
+      <!-- 4.2.1 -->
+      <div id="s4-2-1" style="scroll-margin-top:72px;">
+        <h3>4.2.1 Diluter-Demand System</h3>
+        <div class="card extra-text">
+          <div class="card-title">⚙️ How It Works</div>
+          <ul class="bullet-list">
+            <li>Delivers oxygen <strong>only during inhalation</strong></li>
+            <li>Mixes oxygen with cabin air automatically</li>
+            <li>As altitude increases → more oxygen, less cabin air mixed in</li>
+            <li>At approximately <span class="hl">34,000 ft</span> → supplies nearly <span class="hl">100% oxygen</span></li>
+          </ul>
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">🚨 Emergency Mode</div>
+          <ul class="bullet-list">
+            <li>Pilot can manually select <strong>100% oxygen</strong></li>
+            <li>Or select emergency continuous-flow oxygen</li>
+          </ul>
+        </div>
+        <div class="box box-recap">
+          <div class="box-title">⚡ Quick Recap — Diluter-Demand</div>
+          Conserves oxygen + automatically adjusts O₂ concentration with altitude. At ~34,000 ft → ~100% oxygen.
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 4.2.2 -->
+      <div id="s4-2-2" style="scroll-margin-top:72px;">
+        <h3>4.2.2 Pressure-Demand System</h3>
+        <div class="card extra-text">
+          <div class="card-title">⚙️ How It Works</div>
+          <p>Operates like a diluter-demand system, but oxygen is delivered <strong>under positive pressure</strong> — forcing oxygen into the lungs.</p>
+          <ul class="bullet-list">
+            <li>At very high altitude, normal breathing pressure becomes insufficient</li>
+            <li>Pressurized oxygen ensures proper blood saturation</li>
+            <li>Used above approximately <span class="hl">40,000 ft</span></li>
+            <li>Common in airliners and high-performance aircraft</li>
+          </ul>
+        </div>
+        <div class="box box-recap">
+          <div class="box-title">⚡ Quick Recap — Pressure-Demand</div>
+          Delivers oxygen <strong>under pressure</strong> for very high-altitude operations where normal breathing mechanics are insufficient.
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 4.2.3 -->
+      <div id="s4-2-3" style="scroll-margin-top:72px;">
+        <h3>4.2.3 Cockpit Oxygen System Layout</h3>
+        <div class="card extra-text">
+          <div class="card-title">🔩 Typical Components</div>
+          <ul class="bullet-list">
+            <li>Remotely mounted oxygen cylinders</li>
+            <li>Pressure reducer</li>
+            <li>Shutoff valve</li>
+            <li>Distribution tubing</li>
+            <li>Individual crew regulators</li>
+            <li>Crew oxygen masks</li>
+          </ul>
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">✈ Crew Control Capability</div>
+          <ul class="bullet-list">
+            <li>Turn system on/off</li>
+            <li>Select oxygen mode</li>
+            <li>Monitor oxygen pressure</li>
+            <li>Transport aircraft: crew and passenger systems are typically <strong>separate</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card extra-text">
+        <div class="card-title">📊 Demand-Flow Comparison</div>
+        <table class="compare-table">
+          <tr>
+            <th>Feature</th>
+            <th>Diluter-Demand</th>
+            <th>Pressure-Demand</th>
+          </tr>
+          <tr>
+            <td>Delivery</td>
+            <td>On inhalation only</td>
+            <td>On inhalation under positive pressure</td>
+          </tr>
+          <tr>
+            <td>Air mixing</td>
+            <td>Mixes O₂ with cabin air</td>
+            <td>Same, but delivered under pressure</td>
+          </tr>
+          <tr>
+            <td>Altitude</td>
+            <td>Up to ~34,000 ft</td>
+            <td>Above ~40,000 ft</td>
+          </tr>
+          <tr>
+            <td>Application</td>
+            <td>General aviation / commercial crew</td>
+            <td>Airliners / high-performance aircraft</td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 4.3 CHEMICAL -->
+  <section class="section" id="s4-3">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-target="body-4-3">
+      <span class="section-icon">⚗️</span>
+      <div class="section-title-block">
+        <div class="section-number">Section 4.3</div>
+        <div class="section-title">Chemical Oxygen Systems</div>
+        <div class="section-desc">Solid-state generators used mainly for passenger emergency oxygen</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body collapsed" id="body-4-3">
+
+      <div class="card extra-text">
+        <div class="card-title">⚙️ Operation</div>
+        <p>Pulling the mask down fires a <strong>firing mechanism</strong> that ignites the chemical generator. Oxygen production begins immediately.</p>
+        <ul class="bullet-list">
+          <li>Once activated, <span class="hl-red">cannot be stopped</span></li>
+          <li>Entire generator must be replaced after use</li>
+          <li>Provides oxygen for approximately <span class="hl">10–20 minutes</span></li>
+          <li>Sufficient time for emergency descent</li>
+        </ul>
+      </div>
+
+      <div class="card-2col extra-text">
+        <div class="card">
+          <div class="card-title">✅ Advantages</div>
+          <ul class="bullet-list">
+            <li>Lightweight</li>
+            <li>Compact</li>
+            <li>Minimal maintenance</li>
+            <li>Long shelf life</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">❌ Limitations</div>
+          <ul class="bullet-list">
+            <li>Cannot be stopped once activated</li>
+            <li>Full generator replacement required after each use</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="box box-warning">
+        <div class="box-title">⚠️ Warning</div>
+        Chemical oxygen generators produce heat during operation. Handle with caution. Once activated, the reaction cannot be interrupted.
+      </div>
+
+      <div class="box box-recap">
+        <div class="box-title">⚡ Quick Recap — Chemical Oxygen</div>
+        Used primarily for <strong>passenger emergency oxygen</strong>. Provides <strong>10–20 minutes</strong> of oxygen. Cannot be stopped once activated.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 4.4 EDS -->
+  <section class="section" id="s4-4">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-target="body-4-4">
+      <span class="section-icon">⚡</span>
+      <div class="section-title-block">
+        <div class="section-number">Section 4.4</div>
+        <div class="section-title">Electronic Pulse Demand Systems (EDS)</div>
+        <div class="section-desc">Electronically optimised oxygen delivery to extend supply duration</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body collapsed" id="body-4-4">
+
+      <div class="card extra-text">
+        <div class="card-title">⚙️ Operation</div>
+        <ul class="bullet-list">
+          <li>Detects inhalation <strong>electronically</strong></li>
+          <li>Releases oxygen in timed <strong>pulses</strong></li>
+          <li>Automatically adjusts delivery with altitude</li>
+          <li>Available as portable or permanently installed units</li>
+        </ul>
+      </div>
+
+      <div class="card extra-text">
+        <div class="card-title">🔒 Backup Feature</div>
+        <p>Most EDS units include an <strong>emergency bypass for continuous flow</strong> if electronics fail — ensuring uninterrupted oxygen supply.</p>
+      </div>
+
+      <div class="box box-recap">
+        <div class="box-title">⚡ Quick Recap — EDS</div>
+        Electronically timed pulses synchronised with inhalation → <strong>reduces waste</strong> and <strong>extends oxygen duration</strong>. Emergency bypass available if electronics fail.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 4.5 LOX -->
+  <section class="section" id="s4-5">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-target="body-4-5">
+      <span class="section-icon">❄️</span>
+      <div class="section-title-block">
+        <div class="section-number">Section 4.5</div>
+        <div class="section-title">LOX — Liquid Oxygen Systems</div>
+        <div class="section-desc">Liquid oxygen stored and converted to gas before delivery — mainly military use</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body collapsed" id="body-4-5">
+
+      <div class="card extra-text">
+        <div class="card-title">🔩 Characteristics</div>
+        <ul class="bullet-list">
+          <li>Stores oxygen in <strong>liquid</strong> form</li>
+          <li>Converts to gaseous oxygen before delivery</li>
+          <li>Requires special <strong>insulated containers</strong></li>
+          <li>Includes <strong>heat exchange assemblies</strong> for gas conversion</li>
+          <li>Fitted with <strong>pressure relief protection</strong></li>
+        </ul>
+      </div>
+
+      <div class="box box-key extra-text">
+        <div class="box-title">💡 Usage</div>
+        LOX systems are mostly found in <strong>military aircraft</strong> or former military aircraft in civilian use.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 5 — INDICATION -->
+  <section class="section" id="s5">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-5">
+      <span class="section-icon">🟡</span>
+      <div class="section-title-block">
+        <div class="section-number">Section 5</div>
+        <div class="section-title">Oxygen Indication and Warnings</div>
+        <div class="section-desc">Blowout disks, flow indicators, pressure gauges, and pulse oximeters</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-5">
+
+      <!-- BLOWOUT DISKS -->
+      <div class="card extra-text">
+        <div class="card-title">🟢 Blowout Disks</div>
+        <p>High-pressure systems include <strong>relief valves</strong> and <strong>blowout disks</strong> to release excess pressure safely.</p>
+        <ul class="bullet-list">
+          <li>Most blowout disks are <span class="hl-green">green</span></li>
+          <li>If the disk is missing → the relief valve may have opened</li>
+        </ul>
+      </div>
+
+      <div class="box box-warning">
+        <div class="box-title">⚠️ Missing Green Disk</div>
+        A missing green blowout disk indicates the system may have experienced an <strong>overpressure event</strong>. The cause must be <strong>investigated before flight</strong>.
+      </div>
+
+      <hr class="divider" id="s5-1">
+
+      <!-- 5.1 FLOW INDICATORS -->
+      <h3 style="scroll-margin-top:72px;">5.1 Flow Indicators</h3>
+      <div class="card extra-text">
+        <div class="card-title">⚙️ Purpose & Types</div>
+        <p>Flow indicators confirm that oxygen is actually flowing to the user.</p>
+        <ul class="bullet-list">
+          <li>Moving pith balls</li>
+          <li>Blinking indicators</li>
+          <li>Adjustable flow meters</li>
+        </ul>
+        <p style="margin-top:8px;">They provide quick confirmation that the system is operating correctly.</p>
+      </div>
+
+      <hr class="divider" id="s5-2">
+
+      <!-- 5.2 PRESSURE -->
+      <h3 style="scroll-margin-top:72px;">5.2 Pressure Indications</h3>
+      <div class="card extra-text">
+        <div class="card-title">📊 Oxygen Quantity Monitoring</div>
+        <p>Cylinder pressure indicates remaining oxygen quantity. Sources include:</p>
+        <ul class="bullet-list">
+          <li><strong>Direct gauges</strong> — on the cylinder or panel</li>
+          <li><strong>Electrical transducers</strong> — remote sensing</li>
+          <li><strong>Multifunction cockpit displays</strong> — integrated indication</li>
+        </ul>
+      </div>
+
+      <hr class="divider" id="s5-3">
+
+      <!-- 5.3 PULSE OXIMETER -->
+      <h3 style="scroll-margin-top:72px;">5.3 Pulse Oximeters</h3>
+      <div class="card extra-text">
+        <div class="card-title">🩸 Purpose</div>
+        <p>Portable pulse oximeters measure <strong>blood oxygen saturation</strong> and <strong>heart rate</strong>. Pilots may use them to monitor oxygen needs and detect early signs of <strong>hypoxia</strong>.</p>
+      </div>
+
+      <div class="box box-recap">
+        <div class="box-title">⚡ Quick Recap — Section 5</div>
+        <ul class="bullet-list">
+          <li>Green blowout disk missing = overpressure event → investigate before flight</li>
+          <li>Flow indicators confirm oxygen is reaching the user</li>
+          <li>Cylinder pressure = remaining quantity (gauge, transducer, or MFD)</li>
+          <li>Pulse oximeters monitor blood O₂ saturation and heart rate</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 6 — MAINTENANCE -->
+  <section class="section" id="s6">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-6">
+      <span class="section-icon">🔧</span>
+      <div class="section-title-block">
+        <div class="section-number">Section 6</div>
+        <div class="section-title">Oxygen System Maintenance</div>
+        <div class="section-desc">Safety-critical procedures — leak testing, draining, purging, and component care</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-6">
+
+      <!-- 6.1 LEAK TESTING -->
+      <div id="s6-1" style="scroll-margin-top:72px;">
+        <h3>6.1 Leak Testing</h3>
+        <div class="card extra-text">
+          <div class="card-title">🔍 Detection Method</div>
+          <ul class="bullet-list">
+            <li>Use <strong>oxygen-safe leak detection fluid</strong> only</li>
+            <li>Bubble formation indicates leakage at a fitting or connection</li>
+          </ul>
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">📋 Critical Rules</div>
+          <ul class="bullet-list">
+            <li>Never overtighten fittings — use proper torque</li>
+            <li>Replace damaged fittings</li>
+            <li><strong>Depressurize</strong> the system before performing any repairs</li>
+          </ul>
+        </div>
+        <div class="box box-danger">
+          <div class="box-title">🚨 High-Pressure Hazard</div>
+          High-pressure sections may contain up to <span class="hl-red">1,850 psi</span>. Always <strong>isolate and depressurize</strong> before maintenance. Never work on a pressurized oxygen system.
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 6.2 DRAINING -->
+      <div id="s6-2" style="scroll-margin-top:72px;">
+        <h3>6.2 Draining an Oxygen System</h3>
+        <div class="card extra-text">
+          <div class="card-title">⚙️ Procedure</div>
+          <ol class="step-list">
+            <li><span class="step-num">1</span>Close the cylinder valve</li>
+            <li><span class="step-num">2</span>Allow oxygen to flow from masks or outlets</li>
+            <li><span class="step-num">3</span>Drain remaining pressure safely</li>
+          </ol>
+        </div>
+        <div class="box box-warning">
+          <div class="box-title">⚠️ Draining Safety</div>
+          Release oxygen <strong>outdoors</strong> and <strong>away from all flames and ignition sources</strong>. Never vent oxygen in an enclosed space.
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 6.3 PURGING -->
+      <div id="s6-3" style="scroll-margin-top:72px;">
+        <h3>6.3 Purging an Oxygen System</h3>
+        <div class="card extra-text">
+          <div class="card-title">🎯 Purpose</div>
+          <p>Purging removes <strong>moisture</strong>, <strong>contaminants</strong>, and <strong>air</strong> introduced during maintenance.</p>
+        </div>
+        <div class="box box-danger extra-text">
+          <div class="box-title">🚨 Why Moisture Is Dangerous</div>
+          Moisture inside oxygen systems can:
+          <ul class="bullet-list" style="margin-top:6px;">
+            <li>Freeze at altitude — blocking valves and regulators</li>
+            <li>Cause <strong>corrosion</strong> of system components</li>
+          </ul>
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">⚙️ Purging Process</div>
+          <ul class="bullet-list">
+            <li>Run oxygen through the system for several minutes</li>
+            <li>Restore oxygen saturation inside the system</li>
+            <li>Final purge <strong>must always use pure oxygen</strong></li>
+          </ul>
+        </div>
+        <div class="box box-recap">
+          <div class="box-title">⚡ Quick Recap — Purging</div>
+          Purging removes moisture and contaminants. Moisture can freeze or corrode components. Final purge must use <strong>pure oxygen</strong>.
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 6.4 MASKS & HOSES -->
+      <div id="s6-4" style="scroll-margin-top:72px;">
+        <h3>6.4 Inspection of Masks and Hoses</h3>
+        <div class="card extra-text">
+          <div class="card-title">🔍 Inspection Items</div>
+          <ul class="bullet-list">
+            <li>Leaks, holes, and cracks</li>
+            <li>Damaged straps</li>
+            <li>Faulty microphones</li>
+            <li>Cleanliness — free from <strong>petroleum contamination</strong></li>
+          </ul>
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">😷 Smoke Masks</div>
+          <ul class="bullet-list">
+            <li>Protect both eyes and respiratory system</li>
+            <li>Include built-in microphones</li>
+            <li>Connect to demand regulators</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 6.5 TUBING & FITTINGS -->
+      <div id="s6-5" style="scroll-margin-top:72px;">
+        <h3>6.5 Replacement of Tubing, Valves, and Fittings</h3>
+        <div class="card extra-text">
+          <div class="card-title">🧹 Cleanliness Requirement</div>
+          <p>All oxygen components must be <strong>clean, dry, and free from oil or grease</strong> — contamination is a serious fire hazard.</p>
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">🧪 Approved Cleaning Agents</div>
+          <p>Non-petroleum cleaners such as <span class="term">acetone</span> and <span class="term">trichloroethylene</span> may be used — follow manufacturer procedures.</p>
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">🔩 Sealants</div>
+          <ul class="bullet-list">
+            <li>Only <strong>oxygen-compatible sealants</strong> may be used</li>
+            <li>Teflon tape may be used carefully — start at least <strong>two threads from the end</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- 6.6 SAFETY -->
+      <div id="s6-6" style="scroll-margin-top:72px;">
+        <h3>6.6 Oxygen System Safety</h3>
+        <div class="box box-danger">
+          <div class="box-title">🚨 Major Hazard — Fire Risk</div>
+          Pure oxygen <strong>greatly increases fire risk</strong>. Any ignition source near oxygen can cause a catastrophic fire.
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">📋 Critical Safety Rules</div>
+          <ul class="bullet-list">
+            <li>No smoking within <span class="hl">50 ft</span> of oxygen systems</li>
+            <li>Keep away from oil, grease, and fuel at all times</li>
+            <li>Use <strong>clean, oxygen-compatible tools and equipment</strong></li>
+            <li>Work in <strong>ventilated areas</strong></li>
+            <li>Use only approved oxygen-compatible materials</li>
+            <li>Keep protective caps installed when not connected</li>
+            <li><strong>Open valves slowly</strong></li>
+            <li>Perform pressure and leak checks after all maintenance</li>
+          </ul>
+        </div>
+        <div class="card extra-text">
+          <div class="card-title">🏪 Cylinder Storage</div>
+          <ul class="bullet-list">
+            <li>Store in <strong>cool, ventilated areas</strong></li>
+            <li>Away from heat sources</li>
+            <li>Away from petroleum products</li>
+          </ul>
+        </div>
+        <div class="box box-recap">
+          <div class="box-title">⚡ Quick Recap — Maintenance Safety</div>
+          Oxygen is a powerful oxidiser. <strong>No smoking within 50 ft. No oil or grease.</strong> Depressurize before work. Open valves slowly. Final leak check mandatory.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- KEY TERMS -->
+  <section class="section" id="s-terms">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-terms">
+      <span class="section-icon">📖</span>
+      <div class="section-title-block">
+        <div class="section-number">Exam Prep</div>
+        <div class="section-title">Key Terms & Definitions</div>
+        <div class="section-desc">Essential vocabulary for your exam</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-terms">
+      <div class="terms-grid">
+        <div class="term-card"><div class="term-card-name">Continuous-flow system</div><div class="term-card-def">Oxygen flows continuously once the valve is opened — even during exhalation.</div></div>
+        <div class="term-card"><div class="term-card-name">Demand-flow system</div><div class="term-card-def">Oxygen flows only during inhalation — conserves oxygen supply.</div></div>
+        <div class="term-card"><div class="term-card-name">Diluter-demand regulator</div><div class="term-card-def">Mixes oxygen with cabin air; automatically adjusts concentration with altitude.</div></div>
+        <div class="term-card"><div class="term-card-name">Pressure-demand regulator</div><div class="term-card-def">Delivers oxygen under positive pressure — required above ~40,000 ft.</div></div>
+        <div class="term-card"><div class="term-card-name">Aneroid device</div><div class="term-card-def">Altitude-sensing device used in automatic continuous-flow regulators to increase flow as altitude rises.</div></div>
+        <div class="term-card"><div class="term-card-name">Blowout disk</div><div class="term-card-def">Green safety disk that ruptures to indicate an overpressure release event. Missing disk = investigate before flight.</div></div>
+        <div class="term-card"><div class="term-card-name">Pulse oximeter</div><div class="term-card-def">Portable device measuring blood oxygen saturation and heart rate.</div></div>
+        <div class="term-card"><div class="term-card-name">Purging</div><div class="term-card-def">Process of removing moisture and contaminants from the oxygen system using pure oxygen.</div></div>
+        <div class="term-card"><div class="term-card-name">LOX</div><div class="term-card-def">Liquid Oxygen — stored in liquid form, converted to gas before delivery. Mainly military use.</div></div>
+        <div class="term-card"><div class="term-card-name">EDS</div><div class="term-card-def">Electronic Pulse Demand System — detects inhalation electronically and delivers oxygen in timed pulses.</div></div>
+        <div class="term-card"><div class="term-card-name">PSU</div><div class="term-card-def">Passenger Service Unit — overhead unit housing passenger emergency oxygen masks.</div></div>
+        <div class="term-card"><div class="term-card-name">Calibrated orifice</div><div class="term-card-def">Fixed opening that controls the precise flow rate of oxygen to each mask outlet.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLASHCARDS -->
+  <section class="section flashcard-section" id="s-flash">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-flash">
+      <span class="section-icon">🔁</span>
+      <div class="section-title-block">
+        <div class="section-number">Exam Prep</div>
+        <div class="section-title">Flashcards</div>
+        <div class="section-desc">Click a card to reveal the answer — press Space or Enter when focused</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-flash">
+      <div class="flashcard-grid">
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What is the key disadvantage of a continuous-flow system?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">What is the key disadvantage of a continuous-flow system?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">Oxygen flows continuously — even during exhalation — wasting oxygen and reducing duration.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: At what altitude does a diluter-demand system supply ~100% oxygen?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">At what altitude does a diluter-demand system supply ~100% oxygen?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">At approximately 34,000 ft the system supplies nearly 100% oxygen.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: Why is a pressure-demand system needed above ~40,000 ft?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">Why is a pressure-demand system needed above ~40,000 ft?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">Normal breathing pressure becomes insufficient. Oxygen under positive pressure forces it into the lungs to ensure proper blood saturation.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: How long do chemical oxygen generators typically provide oxygen?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">How long do chemical oxygen generators typically provide oxygen?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">10–20 minutes — sufficient time for an emergency descent.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What does a missing green blowout disk indicate?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">What does a missing green blowout disk indicate?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">The relief valve may have opened due to an overpressure event. The cause must be investigated before flight.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What is the maximum pressure in high-pressure oxygen system sections?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">What is the maximum pressure found in high-pressure oxygen sections?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">Up to 1,850 psi — always isolate and depressurize before maintenance.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: Why must oxygen systems be purged?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">Why must oxygen systems be purged after maintenance?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">To remove moisture and contaminants. Moisture can freeze at altitude, block valves, or cause corrosion.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What minimum distance must be maintained from smoking near oxygen systems?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">What is the minimum no-smoking distance around oxygen systems?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">No smoking within 50 ft of oxygen systems — pure oxygen greatly increases fire risk.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What does an EDS backup feature provide?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">What backup does an EDS system typically include?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">An emergency bypass for continuous flow if the electronics fail — ensuring uninterrupted oxygen supply.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: Where must Teflon tape start when sealing oxygen fittings?">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="fc-label">Question</div>
+              <div class="fc-q">When using Teflon tape on oxygen fittings, where must it start?</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-a">At least two threads from the end of the fitting — to prevent tape entering the oxygen system.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="section quiz-section" id="s-quiz">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-quiz">
+      <span class="section-icon">🧪</span>
+      <div class="section-title-block">
+        <div class="section-number">Exam Prep</div>
+        <div class="section-title">Self-Check Quiz</div>
+        <div class="section-desc">10 exam-style questions — click an option to reveal feedback</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-quiz">
+
+      <div id="quiz-container">
+
+        <!-- Q1 -->
+        <div class="quiz-card" data-qid="1">
+          <div class="quiz-q-num">Question 1 of 10</div>
+          <div class="quiz-q">Which oxygen system type delivers oxygen ONLY during inhalation?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>Continuous-flow system</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">B</span><span>Demand-flow system</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">C</span><span>Chemical oxygen system</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>LOX system</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — Demand-flow systems supply oxygen only during inhalation, stopping flow during exhalation to conserve supply.</div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-card" data-qid="2">
+          <div class="quiz-q-num">Question 2 of 10</div>
+          <div class="quiz-q">At approximately what altitude does a diluter-demand system supply nearly 100% oxygen?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>20,000 ft</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">B</span><span>25,000 ft</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">C</span><span>34,000 ft</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>40,000 ft</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — At approximately 34,000 ft, the diluter-demand system supplies nearly 100% oxygen with minimal cabin air mixing.</div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-card" data-qid="3">
+          <div class="quiz-q-num">Question 3 of 10</div>
+          <div class="quiz-q">What does a missing green blowout disk on an oxygen system indicate?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>Oxygen supply is low</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">B</span><span>The system has been serviced recently</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">C</span><span>The relief valve may have opened due to an overpressure event</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>The cylinder is full</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — A missing green blowout disk indicates an overpressure event may have occurred. The cause must be investigated before flight.</div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="quiz-card" data-qid="4">
+          <div class="quiz-q-num">Question 4 of 10</div>
+          <div class="quiz-q">Chemical oxygen generators for passenger emergency use typically provide oxygen for:</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>5–10 minutes</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">B</span><span>10–20 minutes</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">C</span><span>30–45 minutes</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>60 minutes</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — Chemical oxygen generators typically provide 10–20 minutes of oxygen — sufficient time for an emergency descent.</div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="quiz-card" data-qid="5">
+          <div class="quiz-q-num">Question 5 of 10</div>
+          <div class="quiz-q">What is the maximum pressure that may be found in a high-pressure oxygen system section?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>500 psi</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">B</span><span>1,000 psi</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">C</span><span>1,850 psi</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>3,000 psi</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — High-pressure sections may contain up to 1,850 psi. Always isolate and depressurize the system before maintenance.</div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="quiz-card" data-qid="6">
+          <div class="quiz-q-num">Question 6 of 10</div>
+          <div class="quiz-q">What is the PRIMARY purpose of purging an oxygen system?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>To increase oxygen pressure</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">B</span><span>To check for leaks</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">C</span><span>To remove moisture and contaminants introduced during maintenance</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>To drain the cylinder</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — Purging removes moisture and contaminants. Moisture can freeze at altitude, blocking valves and causing corrosion.</div>
+        </div>
+
+        <!-- Q7 -->
+        <div class="quiz-card" data-qid="7">
+          <div class="quiz-q-num">Question 7 of 10</div>
+          <div class="quiz-q">Which of the following cleaning agents is approved for use on oxygen system components?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>Engine oil</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">B</span><span>Hydraulic fluid</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">C</span><span>Acetone (per manufacturer procedures)</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>Petroleum-based solvent</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — Non-petroleum cleaners such as acetone may be approved. Petroleum-based products must never be used — they are fire hazards in oxygen systems.</div>
+        </div>
+
+        <!-- Q8 -->
+        <div class="quiz-card" data-qid="8">
+          <div class="quiz-q-num">Question 8 of 10</div>
+          <div class="quiz-q">What device does an automatic continuous-flow regulator use to sense altitude?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>Pitot tube</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">B</span><span>Aneroid device</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">C</span><span>Flow meter</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>Pressure transducer</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — An aneroid device senses altitude changes and automatically increases oxygen flow as altitude increases in automatic continuous-flow regulators.</div>
+        </div>
+
+        <!-- Q9 -->
+        <div class="quiz-card" data-qid="9">
+          <div class="quiz-q-num">Question 9 of 10</div>
+          <div class="quiz-q">What is the minimum no-smoking distance that must be maintained around oxygen systems during maintenance?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>10 ft</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">B</span><span>25 ft</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">C</span><span>50 ft</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>100 ft</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — No smoking within 50 ft of oxygen systems. Pure oxygen greatly increases the risk of fire and ignition.</div>
+        </div>
+
+        <!-- Q10 -->
+        <div class="quiz-card" data-qid="10">
+          <div class="quiz-q-num">Question 10 of 10</div>
+          <div class="quiz-q">LOX (Liquid Oxygen) systems are primarily used in which type of aircraft?</div>
+          <ul class="quiz-options">
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">A</span><span>Small general aviation aircraft</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">B</span><span>Commercial airliners</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="true"><span class="opt-letter">C</span><span>Military aircraft</span></li>
+            <li class="quiz-option" tabindex="0" role="button" data-correct="false"><span class="opt-letter">D</span><span>Helicopters</span></li>
+          </ul>
+          <div class="quiz-feedback">Correct — LOX systems are mostly found in military aircraft or former military aircraft in civilian use.</div>
+        </div>
+
+      </div>
+
+      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-top:4px;">
+        <button class="quiz-reset-btn" id="quiz-reset">↺ Reset Quiz</button>
+        <div class="quiz-score" id="quiz-score" style="display:none;"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- REVISION CHECKLIST -->
+  <section class="section" id="s-checklist">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-target="body-checklist">
+      <span class="section-icon">✅</span>
+      <div class="section-title-block">
+        <div class="section-number">Exam Prep</div>
+        <div class="section-title">Revision Checklist</div>
+        <div class="section-desc">Click each item when you are confident — track your progress</div>
+      </div>
+      <i class="collapse-icon">▾</i>
+    </div>
+    <div class="section-body" id="body-checklist">
+      <div class="card">
+        <ul class="check-list" id="checklist">
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I can explain the difference between continuous-flow and demand-flow systems</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I understand how a diluter-demand regulator adjusts oxygen with altitude</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I can state why a pressure-demand system is needed above ~40,000 ft</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I know how a chemical oxygen generator is activated and its duration (10–20 min)</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I can explain what a missing green blowout disk means and the required action</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I understand the three methods of pressure indication (gauge, transducer, MFD)</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I know why pulse oximeters are used by pilots</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I can describe the leak detection procedure and tool used</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I understand why oxygen systems must be purged and the danger of moisture</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I know the high-pressure hazard (up to 1,850 psi) and the depressurization rule</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I can list the critical oxygen safety rules (50 ft no-smoking, no oil/grease, etc.)</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I understand the Teflon tape rule (start at least 2 threads from the end)</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I know which cleaning agents are approved for oxygen system components</span></li>
+          <li tabindex="0" role="checkbox" aria-checked="false"><span class="chk"></span><span>I can identify all components in the continuous-flow system layout diagram</span></li>
+        </ul>
+        <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+          <div style="font-size:12px; color:var(--text-muted);">Progress: <span id="checklist-count" style="color:var(--green); font-weight:700;">0</span> / 14 completed</div>
+          <div style="margin-top:8px; height:6px; background:var(--border); border-radius:3px; overflow:hidden;">
+            <div id="checklist-bar" style="height:100%; width:0%; background:linear-gradient(90deg,var(--green),var(--teal)); border-radius:3px; transition:width 0.3s;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- EMBEDDED DIAGRAM IMAGE (Base64 encoded from the provided image) -->
+<!-- We embed the image using JavaScript to handle the actual image data -->
+
+<script>
+// ============================================================
+// IMAGE: Load the provided oxygen system diagram
+// We reference it as a data URI placeholder and set the actual
+// image src. Since we cannot encode the actual uploaded image
+// in this build step, we use a descriptive placeholder that
+// the instructor can replace with the real image file.
+// ============================================================
+
+
+// ============================================================
+// PROGRESS BAR
+// ============================================================
+(function() {
+  const bar = document.getElementById('progress-bar');
+  function updateProgress() {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    bar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+})();
+
+// ============================================================
+// SIDEBAR NAVIGATION
+// ============================================================
+(function() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const menuBtn = document.getElementById('menu-toggle');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+    menuBtn.setAttribute('aria-expanded', 'true');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  menuBtn.addEventListener('click', function() {
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+
+  overlay.addEventListener('click', closeSidebar);
+
+  // Close sidebar on nav link click (mobile)
+  sidebar.querySelectorAll('.nav-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+      if (window.innerWidth <= 820) closeSidebar();
+    });
+  });
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('.section[id], [id^="s"]');
+  const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+
+  function setActiveLink() {
+    let current = '';
+    document.querySelectorAll('[id]').forEach(function(el) {
+      if (el.getBoundingClientRect().top < 100) current = el.id;
+    });
+    navLinks.forEach(function(link) {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+    });
+  }
+  window.addEventListener('scroll', setActiveLink, { passive: true });
+})();
+
+// ============================================================
+// COLLAPSIBLE SECTIONS
+// ============================================================
+(function() {
+  function initSection(header) {
+    const targetId = header.getAttribute('data-target');
+    const body = document.getElementById(targetId);
+    if (!body) return;
+
+    // Set initial max-height
+    const isExpanded = header.getAttribute('aria-expanded') === 'true';
+    if (!isExpanded) {
+      body.classList.add('collapsed');
+      body.style.maxHeight = '0';
+    } else {
+      body.style.maxHeight = 'none';
+    }
+
+    function toggle() {
+      const expanded = header.getAttribute('aria-expanded') === 'true';
+      if (expanded) {
+        header.setAttribute('aria-expanded', 'false');
+        body.style.maxHeight = body.scrollHeight + 'px';
+        requestAnimationFrame(function() {
+          body.classList.add('collapsed');
+          body.style.maxHeight = '0';
+        });
+      } else {
+        header.setAttribute('aria-expanded', 'true');
+        body.classList.remove('collapsed');
+        body.style.maxHeight = body.scrollHeight + 20000 + 'px';
+        // After transition, remove fixed height to allow dynamic content
+        body.addEventListener('transitionend', function handler() {
+          if (header.getAttribute('aria-expanded') === 'true') {
+            body.style.maxHeight = 'none';
+          }
+          body.removeEventListener('transitionend', handler);
+        });
+      }
+    }
+
+    header.addEventListener('click', toggle);
+    header.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  }
+
+  document.querySelectorAll('.section-header').forEach(initSection);
+})();
+
+// ============================================================
+// EXPAND / COLLAPSE ALL
+// ============================================================
+(function() {
+  const btn = document.getElementById('btn-expand-all');
+  let allExpanded = false;
+
+  btn.addEventListener('click', function() {
+    allExpanded = !allExpanded;
+    btn.textContent = allExpanded ? '⊟ Collapse All' : '⊞ Expand All';
+    btn.classList.toggle('active', allExpanded);
+
+    document.querySelectorAll('.section-header').forEach(function(header) {
+      const targetId = header.getAttribute('data-target');
+      const body = document.getElementById(targetId);
+      if (!body) return;
+
+      header.setAttribute('aria-expanded', allExpanded ? 'true' : 'false');
+      if (allExpanded) {
+        body.classList.remove('collapsed');
+        body.style.maxHeight = 'none';
+      } else {
+        body.classList.add('collapsed');
+        body.style.maxHeight = '0';
+      }
+    });
+  });
+})();
+
+// ============================================================
+// FOCUS MODE
+// ============================================================
+(function() {
+  const btn = document.getElementById('btn-focus');
+  let active = false;
+
+  btn.addEventListener('click', function() {
+    active = !active;
+    document.body.classList.toggle('focus-mode', active);
+    btn.classList.toggle('active', active);
+    btn.textContent = active ? '🔍 Exit Focus' : '🔍 Focus Mode';
+
+    // Reopen all sections in focus mode
+    if (active) {
+      document.querySelectorAll('.section-header').forEach(function(h) {
+        const body = document.getElementById(h.getAttribute('data-target'));
+        if (body) {
+          h.setAttribute('aria-expanded', 'true');
+          body.classList.remove('collapsed');
+          body.style.maxHeight = 'none';
+        }
+      });
+    }
+  });
+})();
+
+// ============================================================
+// EXAM MODE
+// ============================================================
+(function() {
+  const btn = document.getElementById('btn-exam');
+  let active = false;
+
+  btn.addEventListener('click', function() {
+    active = !active;
+    document.body.classList.toggle('exam-mode', active);
+    btn.classList.toggle('active', active);
+    btn.textContent = active ? '📋 Exit Exam Mode' : '📋 Exam Mode';
+
+    if (active) {
+      document.querySelectorAll('.section-header').forEach(function(h) {
+        const body = document.getElementById(h.getAttribute('data-target'));
+        if (body) {
+          h.setAttribute('aria-expanded', 'true');
+          body.classList.remove('collapsed');
+          body.style.maxHeight = 'none';
+        }
+      });
+    }
+  });
+})();
+
+// ============================================================
+// FLASHCARDS
+// ============================================================
+(function() {
+  document.querySelectorAll('.flashcard').forEach(function(card) {
+    function flipCard() {
+      card.classList.toggle('flipped');
+      const isFlipped = card.classList.contains('flipped');
+      card.setAttribute('aria-label',
+        isFlipped
+          ? card.getAttribute('aria-label').replace('Question', 'Answer — click to flip back')
+          : card.getAttribute('aria-label').replace('Answer — click to flip back', 'Question')
+      );
+    }
+
+    card.addEventListener('click', flipCard);
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        flipCard();
+      }
+    });
+  });
+})();
+
+// ============================================================
+// QUIZ
+// ============================================================
+(function() {
+  var answered = 0;
+  var correct = 0;
+  var total = document.querySelectorAll('.quiz-card').length;
+
+  function initQuiz() {
+    document.querySelectorAll('.quiz-card').forEach(function(card) {
+      const options = card.querySelectorAll('.quiz-option');
+      const feedback = card.querySelector('.quiz-feedback');
+      let answered_this = false;
+
+      options.forEach(function(opt) {
+        function handleAnswer() {
+          if (answered_this) return;
+          answered_this = true;
+          answered++;
+
+          const isCorrect = opt.getAttribute('data-correct') === 'true';
+
+          if (isCorrect) {
+            correct++;
+            opt.classList.add('correct');
+            feedback.classList.add('show', 'fb-correct');
+            feedback.textContent = '✓ ' + (feedback.textContent || 'Correct!');
+          } else {
+            opt.classList.add('incorrect');
+            feedback.classList.add('show', 'fb-incorrect');
+            feedback.textContent = '✗ Incorrect. ' + (feedback.textContent || '');
+            // Show correct answer
+            options.forEach(function(o) {
+              if (o.getAttribute('data-correct') === 'true') {
+                o.classList.add('reveal-correct');
+              }
+            });
+          }
+
+          // Disable all options
+          options.forEach(function(o) { o.classList.add('disabled'); });
+
+          // Update score
+          if (answered === total) {
+            const scoreEl = document.getElementById('quiz-score');
+            scoreEl.style.display = 'block';
+            scoreEl.textContent = 'Score: ' + correct + ' / ' + total + ' (' + Math.round((correct/total)*100) + '%)';
+          }
+        }
+
+        opt.addEventListener('click', handleAnswer);
+        opt.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleAnswer();
+          }
+        });
+      });
+    });
+  }
+
+  function resetQuiz() {
+    answered = 0;
+    correct = 0;
+
+    document.querySelectorAll('.quiz-card').forEach(function(card) {
+      const options = card.querySelectorAll('.quiz-option');
+      const feedback = card.querySelector('.quiz-feedback');
+
+      options.forEach(function(opt) {
+        opt.classList.remove('correct', 'incorrect', 'disabled', 'reveal-correct');
+      });
+
+      feedback.classList.remove('show', 'fb-correct', 'fb-incorrect');
+    });
+
+    const scoreEl = document.getElementById('quiz-score');
+    scoreEl.style.display = 'none';
+
+    // Re-init
+    initQuiz();
+  }
+
+  document.getElementById('quiz-reset').addEventListener('click', resetQuiz);
+
+  initQuiz();
+})();
+
+// ============================================================
+// CHECKLIST
+// ============================================================
+(function() {
+  const items = document.querySelectorAll('#checklist li');
+  const countEl = document.getElementById('checklist-count');
+  const barEl = document.getElementById('checklist-bar');
+  const total = items.length;
+
+  function updateChecklist() {
+    const checked = document.querySelectorAll('#checklist li.checked').length;
+    countEl.textContent = checked;
+    barEl.style.width = (checked / total * 100) + '%';
+  }
+
+  items.forEach(function(item) {
+    function toggle() {
+      item.classList.toggle('checked');
+      const isChecked = item.classList.contains('checked');
+      item.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+      updateChecklist();
+    }
+
+    item.addEventListener('click', toggle);
+    item.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  });
+
+  updateChecklist();
+})();
+</script>
+
+</body>
+</html>
