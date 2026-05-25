@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15.5 – Combustion Section | Aviation Revision</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #1a1d23;
+    --bg-secondary: #22262e;
+    --bg-card: #282c35;
+    --bg-card-hover: #2e333d;
+    --bg-sidebar: #1e2128;
+    --text-primary: #e2e5ea;
+    --text-secondary: #a0a6b2;
+    --text-muted: #6b7280;
+    --accent: #60a5fa;
+    --accent-dim: #3b82f620;
+    --accent-glow: #3b82f640;
+    --warning: #f59e0b;
+    --warning-bg: #f59e0b15;
+    --warning-border: #f59e0b40;
+    --danger: #ef4444;
+    --danger-bg: #ef444415;
+    --danger-border: #ef444440;
+    --success: #10b981;
+    --success-bg: #10b98115;
+    --success-border: #10b98140;
+    --info: #8b5cf6;
+    --info-bg: #8b5cf615;
+    --info-border: #8b5cf640;
+    --border: #2d3240;
+    --border-light: #363c4a;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.2);
+    --transition: 0.25s ease;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-size: 15px;
+    overflow-x: hidden;
+  }
+
+  /* ========== PROGRESS BAR ========== */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px; z-index: 9999;
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+    transition: width 0.15s linear; width: 0%;
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+
+  /* ========== TOPBAR ========== */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
+    background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 20px; gap: 12px;
+    backdrop-filter: blur(12px);
+  }
+  .topbar-title {
+    font-weight: 700; font-size: 15px; color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .topbar-module {
+    font-size: 12px; color: var(--accent); font-weight: 600;
+    background: var(--accent-dim); padding: 3px 10px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .topbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .topbar-btn {
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-secondary); padding: 6px 14px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition);
+    display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  }
+  .topbar-btn:hover, .topbar-btn:focus-visible { background: var(--bg-card-hover); color: var(--text-primary); outline: none; border-color: var(--accent); }
+  .topbar-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text-primary); cursor: pointer; font-size: 22px; padding: 4px; }
+
+  /* ========== SIDEBAR ========== */
+  .sidebar {
+    position: fixed; top: 56px; left: 0; width: 260px; bottom: 0;
+    background: var(--bg-sidebar); border-right: 1px solid var(--border);
+    overflow-y: auto; z-index: 90; padding: 20px 0;
+    transition: transform 0.3s ease;
+  }
+  .sidebar-heading {
+    padding: 0 20px 12px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted);
+  }
+  .sidebar a {
+    display: block; padding: 8px 20px; font-size: 13px;
+    color: var(--text-secondary); text-decoration: none;
+    transition: var(--transition); border-left: 3px solid transparent;
+    line-height: 1.4;
+  }
+  .sidebar a:hover, .sidebar a:focus-visible { color: var(--text-primary); background: var(--bg-card); border-left-color: var(--accent); outline: none; }
+  .sidebar a.active { color: var(--accent); background: var(--accent-dim); border-left-color: var(--accent); font-weight: 600; }
+
+  /* Checklist in sidebar */
+  .sidebar-checklist { padding: 16px 20px 0; border-top: 1px solid var(--border); margin-top: 12px; }
+  .sidebar-checklist h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 10px; }
+  .check-item {
+    display: flex; align-items: center; gap: 8px; padding: 5px 0; cursor: pointer; font-size: 13px; color: var(--text-secondary);
+  }
+  .check-item input { accent-color: var(--accent); cursor: pointer; width: 14px; height: 14px; }
+  .check-item.done label { text-decoration: line-through; color: var(--text-muted); }
+  .check-item label { cursor: pointer; }
+
+  /* ========== MAIN ========== */
+  .main {
+    margin-left: 260px; margin-top: 56px; padding: 36px 40px 80px;
+    max-width: 900px;
+  }
+
+  /* ========== HERO ========== */
+  .hero {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 40px; margin-bottom: 36px; position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: ''; position: absolute; top: -50%; right: -20%;
+    width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-module { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+  .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; line-height: 1.2; }
+  .hero p { color: var(--text-secondary); font-size: 15px; max-width: 560px; }
+
+  /* ========== SECTIONS ========== */
+  .section { margin-bottom: 36px; }
+  .section-header {
+    display: flex; align-items: center; gap: 12px; cursor: pointer;
+    padding: 18px 22px; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); transition: var(--transition); user-select: none;
+  }
+  .section-header:hover { background: var(--bg-card-hover); border-color: var(--border-light); }
+  .section-header:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .section-number {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--accent-dim); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .section-title-group { flex: 1; }
+  .section-title { font-weight: 700; font-size: 17px; }
+  .section-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .chevron {
+    width: 20px; height: 20px; transition: transform 0.3s ease; flex-shrink: 0; color: var(--text-muted);
+  }
+  .section-header[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+  .section-body {
+    overflow: hidden; max-height: 0; transition: max-height 0.4s ease;
+    border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: var(--bg-secondary);
+  }
+  .section-body.open { max-height: 5000px; }
+  .section-content { padding: 24px; }
+
+  /* ========== CARDS ========== */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 18px 20px; margin-bottom: 14px;
+  }
+  .card h4 { font-weight: 700; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+
+  /* ========== DEFINITION ========== */
+  .key-term {
+    color: var(--accent); font-weight: 600;
+  }
+  .highlight { background: var(--accent-dim); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+  /* ========== INFO BOXES ========== */
+  .box {
+    border-radius: var(--radius-sm); padding: 16px 20px; margin: 14px 0;
+    border-left: 4px solid; font-size: 14px;
+  }
+  .box-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .box.recap { background: var(--info-bg); border-color: var(--info); }
+  .box.recap .box-title { color: var(--info); }
+  .box.warning { background: var(--warning-bg); border-color: var(--warning); }
+  .box.warning .box-title { color: var(--warning); }
+  .box.danger { background: var(--danger-bg); border-color: var(--danger); }
+  .box.danger .box-title { color: var(--danger); }
+  .box.tip { background: var(--success-bg); border-color: var(--success); }
+  .box.tip .box-title { color: var(--success); }
+  .box.concept { background: var(--accent-dim); border-color: var(--accent); }
+  .box.concept .box-title { color: var(--accent); }
+
+  /* ========== LISTS ========== */
+  .content-list { padding-left: 0; list-style: none; }
+  .content-list li {
+    padding: 6px 0 6px 20px; position: relative; font-size: 14px; color: var(--text-secondary);
+  }
+  .content-list li::before {
+    content: ''; position: absolute; left: 4px; top: 14px;
+    width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+  }
+
+  /* ========== TABLE ========== */
+  .rev-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  .rev-table th {
+    text-align: left; padding: 10px 14px; background: var(--bg-card);
+    border-bottom: 2px solid var(--accent); font-weight: 700; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
+  }
+  .rev-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+  .rev-table tr:hover td { background: var(--bg-card); }
+
+  /* ========== FLASHCARDS ========== */
+  .flashcard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 14px 0; }
+  .flashcard {
+    perspective: 800px; height: 160px; cursor: pointer;
+  }
+  .flashcard-inner {
+    width: 100%; height: 100%; position: relative;
+    transform-style: preserve-3d; transition: transform 0.5s ease;
+  }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .flashcard-front, .flashcard-back {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: var(--radius-sm); padding: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; font-size: 14px;
+  }
+  .flashcard-front {
+    background: var(--bg-card); border: 1px solid var(--border);
+  }
+  .flashcard-front .fc-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 8px; }
+  .flashcard-front p { font-weight: 600; color: var(--text-primary); }
+  .flashcard-back {
+    background: linear-gradient(135deg, #1e3a5f, #1a2744);
+    border: 1px solid var(--accent); color: var(--text-primary);
+    transform: rotateY(180deg);
+  }
+  .flashcard-back p { font-size: 13px; line-height: 1.6; }
+  .flashcard-hint { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+  /* ========== QUIZ ========== */
+  .quiz-container { margin: 14px 0; }
+  .quiz-question {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 20px; margin-bottom: 14px;
+  }
+  .quiz-question h4 { font-size: 14px; font-weight: 600; margin-bottom: 14px; display: flex; gap: 8px; }
+  .quiz-question h4 .q-num { color: var(--accent); font-weight: 700; }
+  .quiz-option {
+    display: block; width: 100%; text-align: left;
+    padding: 10px 14px; margin-bottom: 8px; font-size: 14px;
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text-secondary);
+    cursor: pointer; transition: var(--transition);
+  }
+  .quiz-option:hover:not(.selected) { border-color: var(--accent); color: var(--text-primary); }
+  .quiz-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .quiz-option.correct { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+  .quiz-option.incorrect { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+  .quiz-option.selected { pointer-events: none; }
+  .quiz-option.reveal-correct { border-color: var(--success); color: var(--success); }
+  .quiz-feedback {
+    margin-top: 10px; padding: 10px 14px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600; display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct-fb { background: var(--success-bg); color: var(--success); }
+  .quiz-feedback.incorrect-fb { background: var(--danger-bg); color: var(--danger); }
+
+  .quiz-score {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 20px; text-align: center; margin-top: 14px;
+  }
+  .quiz-score .score-num { font-size: 32px; font-weight: 800; color: var(--accent); }
+  .quiz-score .score-label { font-size: 13px; color: var(--text-muted); }
+  .quiz-reset {
+    margin-top: 14px; padding: 10px 24px; background: var(--accent);
+    color: #fff; border: none; border-radius: var(--radius-sm);
+    font-weight: 700; font-size: 13px; cursor: pointer; transition: var(--transition);
+  }
+  .quiz-reset:hover { filter: brightness(1.1); }
+
+  /* ========== FOCUS MODE ========== */
+  body.focus-mode .extra-detail { display: none; }
+  body.focus-mode .key-point { border-left: 3px solid var(--accent); padding-left: 12px; }
+
+  /* ========== EXAM MODE ========== */
+  body.exam-mode .section { display: none; }
+  body.exam-mode .section.exam-visible { display: block; }
+  body.exam-mode .section-content > *:not(.box):not(.quiz-container):not(.flashcard-grid):not(.quiz-score):not(.quiz-reset):not(.exam-show) { display: none; }
+  body.exam-mode .box.recap,
+  body.exam-mode .quiz-container,
+  body.exam-mode .flashcard-grid,
+  body.exam-mode .quiz-score,
+  body.exam-mode .quiz-reset { display: block !important; }
+  body.exam-mode .box:not(.recap) { display: none; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.mobile-open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.5); }
+    .menu-toggle { display: block; }
+    .main { margin-left: 0; padding: 24px 18px 60px; }
+    .hero { padding: 28px 22px; }
+    .hero h1 { font-size: 24px; }
+    .topbar-btn span.btn-label { display: none; }
+    .flashcard-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 500px) {
+    .topbar { gap: 6px; padding: 0 12px; }
+    .topbar-right { gap: 4px; }
+    .topbar-btn { padding: 5px 8px; font-size: 11px; }
+  }
+
+  /* ========== SCROLLBAR ========== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* ========== FOCUS STATES ========== */
+  *:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 85;
+  }
+  .sidebar-overlay.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div id="progress-bar"></div>
+
+<!-- Top Bar -->
+<header class="topbar">
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
+  <span class="topbar-module">15.5</span>
+  <span class="topbar-title">Combustion Section</span>
+  <div class="topbar-right">
+    <button class="topbar-btn" id="btnFocus" aria-pressed="false">
+      <span>🎯</span><span class="btn-label">Focus</span>
+    </button>
+    <button class="topbar-btn" id="btnExam" aria-pressed="false">
+      <span>📝</span><span class="btn-label">Exam</span>
+    </button>
+    <button class="topbar-btn" id="btnExpandAll">
+      <span>📂</span><span class="btn-label">Expand All</span>
+    </button>
+  </div>
+</header>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar" aria-label="Table of Contents">
+  <div class="sidebar-heading">Contents</div>
+  <a href="#sec-intro">1. Introduction</a>
+  <a href="#sec-energy">2. Energy Distribution</a>
+  <a href="#sec-functions">3. Main Functions</a>
+  <a href="#sec-location">4. Location & Layout</a>
+  <a href="#sec-components">5. Components</a>
+  <a href="#sec-types">6. Chamber Types</a>
+  <a href="#sec-can">7. Can Type Chamber</a>
+  <a href="#sec-drainage">8. Fuel Drainage</a>
+  <a href="#sec-airflow">9. Airflow</a>
+  <a href="#sec-liner">10. Chamber Liner</a>
+  <a href="#sec-ratio">11. Air/Fuel Ratio</a>
+  <a href="#sec-flashcards">Flashcards</a>
+  <a href="#sec-quiz">Self-Check Quiz</a>
+
+  <div class="sidebar-checklist">
+    <h4>Study Checklist</h4>
+    <div class="check-item"><input type="checkbox" id="ck1"><label for="ck1">Introduction & Purpose</label></div>
+    <div class="check-item"><input type="checkbox" id="ck2"><label for="ck2">Energy Distribution</label></div>
+    <div class="check-item"><input type="checkbox" id="ck3"><label for="ck3">Functions & Components</label></div>
+    <div class="check-item"><input type="checkbox" id="ck4"><label for="ck4">Chamber Types</label></div>
+    <div class="check-item"><input type="checkbox" id="ck5"><label for="ck5">Airflow & Cooling</label></div>
+    <div class="check-item"><input type="checkbox" id="ck6"><label for="ck6">Fuel Drainage</label></div>
+    <div class="check-item"><input type="checkbox" id="ck7"><label for="ck7">Air/Fuel Ratio</label></div>
+    <div class="check-item"><input type="checkbox" id="ck8"><label for="ck8">Flashcards Reviewed</label></div>
+    <div class="check-item"><input type="checkbox" id="ck9"><label for="ck9">Quiz Completed</label></div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-module">Module 15.5</div>
+    <h1>Combustion Section</h1>
+    <p>Gas turbine combustion chambers — types, functions, airflow, and key exam concepts for aviation students.</p>
+  </div>
+
+  <!-- ====== SECTION 1: INTRODUCTION ====== -->
+  <div class="section exam-visible" id="sec-intro">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-section="intro">
+      <div class="section-number">1</div>
+      <div class="section-title-group">
+        <div class="section-title">Introduction to the Combustion Section</div>
+        <div class="section-subtitle">What happens in the combustion chamber</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body open">
+      <div class="section-content">
+        <div class="box concept">
+          <div class="box-title">💡 Key Concept</div>
+          The <span class="key-term">combustion section</span> is where fuel mixes with compressed air, combustion occurs, and heat energy is produced.
+        </div>
+
+        <p class="extra-detail" style="color: var(--text-secondary); font-size: 14px; margin-bottom: 14px;">
+          This energy is then used to drive the turbine, power the compressor, and produce thrust or shaft power. The combustion process greatly increases air temperature by releasing energy from the fuel-air mixture.
+        </p>
+
+        <div class="key-point" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 14px;">
+          <strong style="color: var(--text-primary);">Purpose:</strong> The combustion section converts chemical energy (fuel) into thermal energy (heat), which powers all downstream engine functions.
+        </div>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          Fuel + compressed air → combustion → heat energy → drives turbine → powers compressor → produces thrust/shaft power.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 2: ENERGY DISTRIBUTION ====== -->
+  <div class="section exam-visible" id="sec-energy">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-section="energy">
+      <div class="section-number">2</div>
+      <div class="section-title-group">
+        <div class="section-title">Energy Distribution</div>
+        <div class="section-subtitle">How turbine energy is divided across engine types</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body open">
+      <div class="section-content">
+        <div class="box concept">
+          <div class="box-title">💡 Key Concept</div>
+          Approximately <span class="highlight">⅔ (two-thirds)</span> of turbine energy drives the compressor (gas generator). The remaining energy is used differently depending on engine type.
+        </div>
+
+        <table class="rev-table extra-detail">
+          <thead><tr><th>Engine Type</th><th>Remaining Energy Used For</th></tr></thead>
+          <tbody>
+            <tr><td>Turbojet</td><td>Thrust from high-speed exhaust gases</td></tr>
+            <tr><td>Turbofan</td><td>Driving the fan</td></tr>
+            <tr><td>Turboprop</td><td>Driving a propeller</td></tr>
+            <tr><td>Turboshaft</td><td>Driving helicopter rotor systems</td></tr>
+          </tbody>
+        </table>
+
+        <div class="box warning">
+          <div class="box-title">⚠️ Exam Note</div>
+          In a <strong>pure turbojet</strong>, most thrust comes directly from high-speed exhaust gases leaving the engine. In turbofan, turboprop, and turboshaft engines, much of the power drives fans, propellers, or rotors.
+        </div>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          ⅔ energy → compressor. Remaining ⅓ → thrust (turbojet), fan (turbofan), propeller (turboprop), or rotors (turboshaft).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 3: MAIN FUNCTIONS ====== -->
+  <div class="section exam-visible" id="sec-functions">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="functions">
+      <div class="section-number">3</div>
+      <div class="section-title-group">
+        <div class="section-title">Main Functions of the Combustion Chamber</div>
+        <div class="section-subtitle">Four critical tasks the chamber must perform</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <div class="key-point" style="font-size: 14px; margin-bottom: 16px;">
+          The combustion chamber must perform <strong>four</strong> essential functions:
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px;">
+          <div class="card">
+            <h4>1️⃣ Mix Fuel & Air</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">Ensures efficient combustion and a stable flame.</p>
+          </div>
+          <div class="card">
+            <h4>2️⃣ Burn Efficiently</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">Converts chemical energy into heat energy.</p>
+          </div>
+          <div class="card">
+            <h4>3️⃣ Cool the Gases</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">Turbine blades cannot withstand the highest combustion temperatures directly.</p>
+          </div>
+          <div class="card">
+            <h4>4️⃣ Deliver to Turbine</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">Gases must flow smoothly, evenly, and at the correct temperature.</p>
+          </div>
+        </div>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          <strong>4 Functions:</strong> Mix → Burn → Cool → Deliver. Remember: the chamber must reduce gas temperature before the turbine.
+        </div>
+
+        <div class="box tip">
+          <div class="box-title">🧠 Memory Aid</div>
+          <strong>MBCD</strong> — <em>Mix, Burn, Cool, Deliver</em> — the four jobs of the combustion chamber.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 4: LOCATION ====== -->
+  <div class="section exam-visible" id="sec-location">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="location">
+      <div class="section-number">4</div>
+      <div class="section-title-group">
+        <div class="section-title">Location & Layout</div>
+        <div class="section-subtitle">Where the combustion section sits in the engine</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <div class="box concept">
+          <div class="box-title">💡 Key Concept</div>
+          The combustion section is located <span class="highlight">between the compressor and the turbine</span>.
+        </div>
+
+        <p class="extra-detail" style="font-size: 14px; color: var(--text-secondary);">
+          Combustion chambers are arranged <strong>coaxially</strong> with the compressor and turbine. This arrangement allows smooth airflow through the engine.
+        </p>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          Compressor → <strong>Combustion Section</strong> → Turbine. Arranged coaxially for smooth airflow.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 5: COMPONENTS ====== -->
+  <div class="section exam-visible" id="sec-components">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="components">
+      <div class="section-number">5</div>
+      <div class="section-title-group">
+        <div class="section-title">Main Components</div>
+        <div class="section-subtitle">Five basic elements found in all combustion chambers</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <div class="key-point" style="font-size: 14px; margin-bottom: 14px;">
+          All combustion chambers share the same <strong>five basic components</strong>:
+        </div>
+
+        <ul class="content-list">
+          <li><strong>Outer Casing</strong> — encloses the combustion chamber and supports components</li>
+          <li><strong>Inner Liner</strong> — perforated, heat-resistant liner that contains the combustion flame</li>
+          <li><strong>Fuel Injection System</strong> — sprays fuel into the chamber</li>
+          <li><strong>Ignition System</strong> — spark igniters that start combustion during engine start</li>
+          <li><strong>Fuel Drainage System</strong> — removes unburned fuel after shutdown</li>
+        </ul>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          5 components: Outer Casing, Inner Liner, Fuel Injection, Ignition System, Fuel Drainage.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 6: TYPES ====== -->
+  <div class="section exam-visible" id="sec-types">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="types">
+      <div class="section-number">6</div>
+      <div class="section-title-group">
+        <div class="section-title">Types of Combustion Chambers</div>
+        <div class="section-subtitle">Three basic designs used in gas turbine engines</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <table class="rev-table">
+          <thead><tr><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="key-term">Can Type</span></td><td>Separate individual combustion chambers</td></tr>
+            <tr><td><span class="key-term">Can-Annular Type</span></td><td>Combination design</td></tr>
+            <tr><td><span class="key-term">Annular Type</span></td><td>Single continuous chamber</td></tr>
+          </tbody>
+        </table>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          3 types: Can (separate), Can-Annular (combination), Annular (single continuous).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 7: CAN TYPE ====== -->
+  <div class="section exam-visible" id="sec-can">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="can">
+      <div class="section-number">7</div>
+      <div class="section-title-group">
+        <div class="section-title">Can Type Combustion Chamber</div>
+        <div class="section-subtitle">Separate cans, flame tubes, and ignition sequence</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <div class="key-point" style="font-size: 14px; margin-bottom: 14px;">
+          <strong>Common use:</strong> Turboshaft engines and Auxiliary Power Units (APUs).
+        </div>
+
+        <div class="extra-detail">
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;">
+            Each combustion can contains an <strong>outer casing</strong> and an <strong>inner perforated liner</strong>.
+          </p>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 14px;">
+            <strong>Advantages:</strong> Easier maintenance; individual chamber replacement is possible.
+          </p>
+        </div>
+
+        <div class="box concept">
+          <div class="box-title">💡 Flame Propagation Tubes</div>
+          Older can-type engines use <span class="key-term">interconnector tubes (flame tubes)</span>. Since each can operates separately, these tubes spread the flame from one can to another during engine start.
+        </div>
+
+        <div class="card">
+          <h4>🔥 Ignition Sequence</h4>
+          <ol style="padding-left: 18px; font-size: 14px; color: var(--text-secondary);">
+            <li>Spark igniters ignite fuel in selected chambers</li>
+            <li>Flame travels through interconnector tubes</li>
+            <li>Remaining chambers ignite sequentially</li>
+          </ol>
+        </div>
+
+        <p class="extra-detail" style="font-size: 14px; color: var(--text-secondary); margin-top: 12px;">
+          Usually <strong>two igniter plugs</strong> are installed, located in the lower combustion chambers.
+        </p>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          Can type = separate chambers. Flame tubes spread ignition between cans. Two igniters, lower chambers. Used in turboshafts & APUs.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 8: FUEL DRAINAGE ====== -->
+  <div class="section exam-visible" id="sec-drainage">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="drainage">
+      <div class="section-number">8</div>
+      <div class="section-title-group">
+        <div class="section-title">Fuel Drainage System</div>
+        <div class="section-subtitle">Why draining unburned fuel is safety-critical</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <div class="key-point" style="font-size: 14px; margin-bottom: 14px;">
+          The drainage system removes <strong>unburned fuel after shutdown</strong>.
+        </div>
+
+        <div class="box danger">
+          <div class="box-title">🚨 Without Drainage — Problems</div>
+          <ul class="content-list" style="margin: 0;">
+            <li><strong>Gum Deposits:</strong> Fuel residue can block nozzles and contaminate manifolds</li>
+            <li><strong>Afterfire Risk:</strong> Accumulated fuel may ignite unexpectedly during the next start</li>
+            <li><strong>Excessive EGT:</strong> Too much fuel causes dangerous temperature rise and potential engine damage</li>
+          </ul>
+        </div>
+
+        <div class="box tip">
+          <div class="box-title">📝 Exam Tip</div>
+          Fuel drainage systems prevent <strong>afterfire</strong> and <strong>fuel residue buildup</strong>.
+        </div>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          Drainage removes unburned fuel → prevents gum deposits, afterfire, and excessive EGT.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 9: AIRFLOW ====== -->
+  <div class="section exam-visible" id="sec-airflow">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="airflow">
+      <div class="section-number">9</div>
+      <div class="section-title-group">
+        <div class="section-title">Combustion Chamber Airflow</div>
+        <div class="section-subtitle">Primary and secondary air — roles and temperatures</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <div class="key-point" style="font-size: 14px; margin-bottom: 14px;">
+          Incoming compressed air is divided into <strong>two main streams</strong>:
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="card">
+            <h4 style="color: var(--accent);">Primary Air</h4>
+            <ul class="content-list" style="margin: 0;">
+              <li>Mixes with fuel</li>
+              <li>Supports combustion</li>
+              <li>Directed into the <strong>front section</strong> of the liner</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4 style="color: var(--warning);">Secondary Air</h4>
+            <ul class="content-list" style="margin: 0;">
+              <li>Cools combustion gases</li>
+              <li>Protects turbine components</li>
+              <li>Reduces temperature for turbine entry</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="box warning">
+          <div class="box-title">⚠️ Critical Temperatures</div>
+          Combustion temperatures can reach approximately <span class="highlight">1,900°C</span>. Secondary air cools gases to approximately <span class="highlight">800°C</span> before entering the turbine.
+        </div>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          Primary air = combustion. Secondary air = cooling (1,900°C → ~800°C). Both are essential for safe turbine operation.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 10: LINER ====== -->
+  <div class="section exam-visible" id="sec-liner">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="liner">
+      <div class="section-number">10</div>
+      <div class="section-title-group">
+        <div class="section-title">Combustion Chamber Liner</div>
+        <div class="section-subtitle">Perforated design for airflow control and flame stability</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <div class="key-point" style="font-size: 14px; margin-bottom: 14px;">
+          The liner <strong>contains combustion</strong>, <strong>protects the outer casing</strong>, and <strong>controls airflow</strong>.
+        </div>
+
+        <div class="card extra-detail">
+          <h4>Perforations in the Liner</h4>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
+            The liner contains <strong>holes, slots, and louvers</strong>. Each opening controls:
+          </p>
+          <ul class="content-list" style="margin: 0;">
+            <li>Air distribution</li>
+            <li>Flame stability</li>
+            <li>Cooling</li>
+          </ul>
+        </div>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          Liner = perforated heat-resistant shell. Holes/slots/louvers control air distribution, flame stability, and cooling.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 11: AIR/FUEL RATIO ====== -->
+  <div class="section exam-visible" id="sec-ratio">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="false" data-section="ratio">
+      <div class="section-number">11</div>
+      <div class="section-title-group">
+        <div class="section-title">Air/Fuel Ratio Limits</div>
+        <div class="section-subtitle">Rich limit, lean limit, and why the ratio matters</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body">
+      <div class="section-content">
+        <div class="key-point" style="font-size: 14px; margin-bottom: 14px;">
+          For proper combustion, fuel and air must remain within <strong>correct limits</strong>.
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="card" style="border-left: 3px solid var(--danger);">
+            <h4 style="color: var(--danger);">Rich Limit</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">Too much fuel, not enough oxygen → flame extinguishes.</p>
+          </div>
+          <div class="card" style="border-left: 3px solid var(--warning);">
+            <h4 style="color: var(--warning);">Lean Limit</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">Too much air, mixture too weak → flame extinguishes.</p>
+          </div>
+        </div>
+
+        <div class="box danger">
+          <div class="box-title">🚨 Safety Critical</div>
+          Both extremes (too rich or too lean) result in <strong>flame extinction</strong>. A stable combustion process requires the correct air/fuel ratio.
+        </div>
+
+        <div class="box recap">
+          <div class="box-title">⚡ Quick Recap</div>
+          Too rich = too much fuel → flame out. Too lean = too much air → flame out. Correct ratio = stable combustion.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== FLASHCARDS ====== -->
+  <div class="section exam-visible" id="sec-flashcards">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-section="flashcards">
+      <div class="section-number" style="background: var(--info-bg); color: var(--info);">🔁</div>
+      <div class="section-title-group">
+        <div class="section-title">Flashcards</div>
+        <div class="section-subtitle">Click or press Enter to flip — exam-focused revision</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body open">
+      <div class="section-content">
+        <div class="flashcard-grid">
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What does the combustion section do?">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-label">Question</div>
+                <p>What does the combustion section do?</p>
+                <div class="flashcard-hint">Click to reveal</div>
+              </div>
+              <div class="flashcard-back">
+                <p>Mixes fuel with compressed air, burns it, and produces heat energy to drive the turbine and produce thrust/shaft power.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: How much turbine energy drives the compressor?">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-label">Question</div>
+                <p>How much turbine energy drives the compressor?</p>
+                <div class="flashcard-hint">Click to reveal</div>
+              </div>
+              <div class="flashcard-back">
+                <p>Approximately <strong>two-thirds (⅔)</strong> of turbine energy drives the compressor (gas generator).</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What are the 4 functions of a combustion chamber?">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-label">Question</div>
+                <p>What are the 4 functions of a combustion chamber?</p>
+                <div class="flashcard-hint">Click to reveal</div>
+              </div>
+              <div class="flashcard-back">
+                <p><strong>MBCD</strong>: Mix fuel & air, Burn efficiently, Cool combustion gases, Deliver gases to the turbine.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What is the role of secondary air?">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-label">Question</div>
+                <p>What is the role of secondary air?</p>
+                <div class="flashcard-hint">Click to reveal</div>
+              </div>
+              <div class="flashcard-back">
+                <p>Cools combustion gases from approximately <strong>1,900°C to 800°C</strong> before entering the turbine, protecting turbine components.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What do flame propagation tubes do?">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-label">Question</div>
+                <p>What do flame propagation tubes do?</p>
+                <div class="flashcard-hint">Click to reveal</div>
+              </div>
+              <div class="flashcard-back">
+                <p>Spread the flame from ignited chambers to the remaining chambers during engine start in can-type combustion systems.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: Why is fuel drainage important?">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-label">Question</div>
+                <p>Why is fuel drainage important?</p>
+                <div class="flashcard-hint">Click to reveal</div>
+              </div>
+              <div class="flashcard-back">
+                <p>Prevents <strong>gum deposits</strong> (blocked nozzles), <strong>afterfire</strong> (unexpected ignition), and <strong>excessive EGT</strong> (engine damage).</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What are the three combustion chamber types?">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-label">Question</div>
+                <p>Name the three combustion chamber types.</p>
+                <div class="flashcard-hint">Click to reveal</div>
+              </div>
+              <div class="flashcard-back">
+                <p><strong>Can Type</strong> (separate chambers), <strong>Can-Annular</strong> (combination), <strong>Annular</strong> (single continuous chamber).</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: Rich vs Lean limit">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-label">Question</div>
+                <p>What happens at Rich and Lean limits?</p>
+                <div class="flashcard-hint">Click to reveal</div>
+              </div>
+              <div class="flashcard-back">
+                <p><strong>Rich:</strong> Too much fuel, not enough O₂ → flame out.<br><strong>Lean:</strong> Too much air, mixture too weak → flame out.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== QUIZ ====== -->
+  <div class="section exam-visible" id="sec-quiz">
+    <div class="section-header" role="button" tabindex="0" aria-expanded="true" data-section="quiz">
+      <div class="section-number" style="background: var(--success-bg); color: var(--success);">🧪</div>
+      <div class="section-title-group">
+        <div class="section-title">Self-Check Quiz</div>
+        <div class="section-subtitle">10 exam-style MCQs with instant feedback</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+    <div class="section-body open">
+      <div class="section-content">
+        <div class="quiz-container" id="quizContainer">
+
+          <!-- Q1 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q1.</span> What is the primary function of the combustion section?</h4>
+            <button class="quiz-option" data-correct="false">Compress incoming air</button>
+            <button class="quiz-option" data-correct="true">Mix fuel with compressed air, burn it, and produce heat energy</button>
+            <button class="quiz-option" data-correct="false">Convert mechanical energy into electrical energy</button>
+            <button class="quiz-option" data-correct="false">Reduce exhaust noise</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q2 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q2.</span> The combustion section is located between the:</h4>
+            <button class="quiz-option" data-correct="false">Fan and compressor</button>
+            <button class="quiz-option" data-correct="false">Turbine and exhaust nozzle</button>
+            <button class="quiz-option" data-correct="true">Compressor and turbine</button>
+            <button class="quiz-option" data-correct="false">Intake and fan</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q3 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q3.</span> Approximately how much turbine energy drives the compressor?</h4>
+            <button class="quiz-option" data-correct="false">One-quarter</button>
+            <button class="quiz-option" data-correct="false">One-half</button>
+            <button class="quiz-option" data-correct="true">Two-thirds</button>
+            <button class="quiz-option" data-correct="false">Three-quarters</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q4 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q4.</span> What is the role of secondary air in the combustion chamber?</h4>
+            <button class="quiz-option" data-correct="false">Supports fuel combustion</button>
+            <button class="quiz-option" data-correct="true">Cools combustion gases before they enter the turbine</button>
+            <button class="quiz-option" data-correct="false">Increases flame temperature</button>
+            <button class="quiz-option" data-correct="false">Assists engine starting</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q5 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q5.</span> What is the purpose of flame propagation tubes in can-type chambers?</h4>
+            <button class="quiz-option" data-correct="false">To drain fuel after shutdown</button>
+            <button class="quiz-option" data-correct="false">To inject additional fuel</button>
+            <button class="quiz-option" data-correct="true">To spread ignition from one can to another during engine start</button>
+            <button class="quiz-option" data-correct="false">To cool the outer casing</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q6 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q6.</span> The fuel drainage system prevents all of the following EXCEPT:</h4>
+            <button class="quiz-option" data-correct="false">Gum deposits on nozzles</button>
+            <button class="quiz-option" data-correct="false">Afterfire risk</button>
+            <button class="quiz-option" data-correct="false">Excessive EGT on next start</button>
+            <button class="quiz-option" data-correct="true">Compressor stall</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q7 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q7.</span> Which type of combustion chamber is commonly used in turboshaft engines and APUs?</h4>
+            <button class="quiz-option" data-correct="true">Can type</button>
+            <button class="quiz-option" data-correct="false">Annular type</button>
+            <button class="quiz-option" data-correct="false">Can-annular type</button>
+            <button class="quiz-option" data-correct="false">Reverse-flow type</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q8 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q8.</span> What happens when the air/fuel mixture exceeds the rich limit?</h4>
+            <button class="quiz-option" data-correct="false">Combustion becomes more efficient</button>
+            <button class="quiz-option" data-correct="true">Not enough oxygen — flame extinguishes</button>
+            <button class="quiz-option" data-correct="false">Turbine temperature increases safely</button>
+            <button class="quiz-option" data-correct="false">Engine thrust doubles</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q9 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q9.</span> The combustion chamber liner contains holes, slots, and louvers primarily to control:</h4>
+            <button class="quiz-option" data-correct="false">Fuel pressure</button>
+            <button class="quiz-option" data-correct="true">Air distribution, flame stability, and cooling</button>
+            <button class="quiz-option" data-correct="false">Compressor speed</button>
+            <button class="quiz-option" data-correct="false">Exhaust noise</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <!-- Q10 -->
+          <div class="quiz-question" data-answered="false">
+            <h4><span class="q-num">Q10.</span> In a pure turbojet engine, most thrust comes from:</h4>
+            <button class="quiz-option" data-correct="false">The fan stage</button>
+            <button class="quiz-option" data-correct="false">The propeller</button>
+            <button class="quiz-option" data-correct="true">High-speed exhaust gases leaving the engine</button>
+            <button class="quiz-option" data-correct="false">The compressor stage</button>
+            <div class="quiz-feedback"></div>
+          </div>
+
+        </div>
+
+        <div class="quiz-score" id="quizScore" style="display: none;">
+          <div class="score-label">YOUR SCORE</div>
+          <div class="score-num" id="scoreNum">0/10</div>
+          <button class="quiz-reset" id="quizReset">Reset Quiz</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function() {
+  'use strict';
+
+  // ========== PROGRESS BAR ==========
+  const progressBar = document.getElementById('progress-bar');
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  // ========== SIDEBAR MOBILE ==========
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  function closeSidebar() {
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('show');
+  }
+  menuToggle.addEventListener('click', function() {
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('show');
+  });
+  overlay.addEventListener('click', closeSidebar);
+
+  // Close sidebar on nav click (mobile)
+  sidebar.querySelectorAll('a').forEach(function(link) {
+    link.addEventListener('click', closeSidebar);
+  });
+
+  // ========== SIDEBAR ACTIVE HIGHLIGHTING ==========
+  const sectionElements = document.querySelectorAll('.section[id]');
+  const sidebarLinks = sidebar.querySelectorAll('a[href^="#"]');
+
+  function highlightSidebar() {
+    let current = '';
+    sectionElements.forEach(function(sec) {
+      const top = sec.getBoundingClientRect().top;
+      if (top < 120) current = sec.id;
+    });
+    sidebarLinks.forEach(function(link) {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', highlightSidebar, { passive: true });
+
+  // ========== COLLAPSIBLE SECTIONS ==========
+  const sectionHeaders = document.querySelectorAll('.section-header');
+
+  function toggleSection(header) {
+    const body = header.nextElementSibling;
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open');
+    header.setAttribute('aria-expanded', !isOpen);
+  }
+
+  sectionHeaders.forEach(function(header) {
+    // Set initial state from aria-expanded
+    const body = header.nextElementSibling;
+    if (header.getAttribute('aria-expanded') === 'false') {
+      body.classList.remove('open');
+    }
+
+    header.addEventListener('click', function() { toggleSection(header); });
+    header.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleSection(header);
+      }
+    });
+  });
+
+  // ========== EXPAND / COLLAPSE ALL ==========
+  const btnExpandAll = document.getElementById('btnExpandAll');
+  let allExpanded = false;
+
+  btnExpandAll.addEventListener('click', function() {
+    allExpanded = !allExpanded;
+    sectionHeaders.forEach(function(header) {
+      const body = header.nextElementSibling;
+      if (allExpanded) {
+        body.classList.add('open');
+        header.setAttribute('aria-expanded', 'true');
+      } else {
+        body.classList.remove('open');
+        header.setAttribute('aria-expanded', 'false');
+      }
+    });
+    const label = btnExpandAll.querySelector('.btn-label');
+    if (label) label.textContent = allExpanded ? 'Collapse All' : 'Expand All';
+  });
+
+  // ========== FOCUS MODE ==========
+  const btnFocus = document.getElementById('btnFocus');
+  btnFocus.addEventListener('click', function() {
+    document.body.classList.toggle('focus-mode');
+    const active = document.body.classList.contains('focus-mode');
+    btnFocus.classList.toggle('active', active);
+    btnFocus.setAttribute('aria-pressed', active);
+  });
+
+  // ========== EXAM MODE ==========
+  const btnExam = document.getElementById('btnExam');
+  btnExam.addEventListener('click', function() {
+    document.body.classList.toggle('exam-mode');
+    const active = document.body.classList.contains('exam-mode');
+    btnExam.classList.toggle('active', active);
+    btnExam.setAttribute('aria-pressed', active);
+
+    // Make sure exam-visible sections are expanded
+    if (active) {
+      document.querySelectorAll('.section.exam-visible .section-body').forEach(function(body) {
+        body.classList.add('open');
+        const header = body.previousElementSibling;
+        if (header) header.setAttribute('aria-expanded', 'true');
+      });
+    }
+  });
+
+  // ========== FLASHCARDS ==========
+  document.querySelectorAll('.flashcard').forEach(function(card) {
+    card.addEventListener('click', function() { card.classList.toggle('flipped'); });
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        card.classList.toggle('flipped');
+      }
+    });
+  });
+
+  // ========== QUIZ ==========
+  const quizContainer = document.getElementById('quizContainer');
+  const quizScoreEl = document.getElementById('quizScore');
+  const scoreNumEl = document.getElementById('scoreNum');
+  const quizReset = document.getElementById('quizReset');
+  let totalQuestions = quizContainer.querySelectorAll('.quiz-question').length;
+  let answered = 0;
+  let correctCount = 0;
+
+  quizContainer.addEventListener('click', function(e) {
+    const btn = e.target.closest('.quiz-option');
+    if (!btn) return;
+
+    const question = btn.closest('.quiz-question');
+    if (question.getAttribute('data-answered') === 'true') return;
+
+    question.setAttribute('data-answered', 'true');
+    answered++;
+
+    const isCorrect = btn.getAttribute('data-correct') === 'true';
+    const feedback = question.querySelector('.quiz-feedback');
+
+    // Mark selected
+    btn.classList.add('selected');
+
+    if (isCorrect) {
+      btn.classList.add('correct');
+      feedback.textContent = '✅ Correct!';
+      feedback.className = 'quiz-feedback show correct-fb';
+      correctCount++;
+    } else {
+      btn.classList.add('incorrect');
+      feedback.textContent = '❌ Incorrect — see the correct answer highlighted.';
+      feedback.className = 'quiz-feedback show incorrect-fb';
+      // Highlight correct answer
+      question.querySelectorAll('.quiz-option').forEach(function(opt) {
+        if (opt.getAttribute('data-correct') === 'true') {
+          opt.classList.add('reveal-correct');
+        }
+        opt.classList.add('selected');
+      });
+    }
+
+    // Show score when all answered
+    if (answered === totalQuestions) {
+      quizScoreEl.style.display = 'block';
+      scoreNumEl.textContent = correctCount + '/' + totalQuestions;
+    }
+  });
+
+  // Reset quiz
+  quizReset.addEventListener('click', function() {
+    answered = 0;
+    correctCount = 0;
+    quizScoreEl.style.display = 'none';
+    quizContainer.querySelectorAll('.quiz-question').forEach(function(q) {
+      q.setAttribute('data-answered', 'false');
+      q.querySelector('.quiz-feedback').className = 'quiz-feedback';
+      q.querySelector('.quiz-feedback').textContent = '';
+      q.querySelectorAll('.quiz-option').forEach(function(opt) {
+        opt.className = 'quiz-option';
+      });
+    });
+  });
+
+  // ========== CHECKLIST PERSISTENCE ==========
+  const checkboxes = document.querySelectorAll('.check-item input');
+  checkboxes.forEach(function(cb) {
+    const key = 'checklist_' + cb.id;
+    // Restore
+    if (localStorage.getItem(key) === 'true') {
+      cb.checked = true;
+      cb.closest('.check-item').classList.add('done');
+    }
+    cb.addEventListener('change', function() {
+      localStorage.setItem(key, cb.checked);
+      cb.closest('.check-item').classList.toggle('done', cb.checked);
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>
