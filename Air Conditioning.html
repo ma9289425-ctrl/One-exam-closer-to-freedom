@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aircraft Air Conditioning — AVT 4513 Revision</title>
+<style>
+  :root {
+    --bg: #141820;
+    --bg2: #1a2030;
+    --bg3: #1f2840;
+    --card: #1e2535;
+    --card2: #232d42;
+    --border: #2e3a52;
+    --accent: #4a9eff;
+    --accent2: #38c9b0;
+    --accent3: #f5a623;
+    --danger: #e05252;
+    --warn: #e0a040;
+    --success: #3dbe7a;
+    --text: #dce6f5;
+    --text2: #9aaec8;
+    --text3: #6a82a0;
+    --font: 'Segoe UI', system-ui, sans-serif;
+    --sidebar-w: 260px;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%; z-index: 9999; transition: width .1s;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    position: fixed; top: 3px; left: 0; right: 0; z-index: 900;
+    background: rgba(20,24,32,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; flex-wrap: wrap;
+  }
+  #topbar .logo {
+    font-weight: 700; font-size: 15px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+  #topbar .spacer { flex: 1; }
+  .tb-btn {
+    padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card2); color: var(--text); cursor: pointer;
+    font-size: 13px; font-family: var(--font);
+    transition: background .2s, border-color .2s;
+    white-space: nowrap;
+  }
+  .tb-btn:hover { background: var(--bg3); border-color: var(--accent); }
+  .tb-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #menu-toggle {
+    display: none; background: var(--card2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 6px 12px;
+    cursor: pointer; font-size: 18px;
+  }
+
+  /* ── LAYOUT ── */
+  #layout { display: flex; padding-top: 58px; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar-w); position: fixed; top: 61px; bottom: 0; left: 0;
+    overflow-y: auto; background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 16px 0; z-index: 800;
+    transition: transform .3s;
+  }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .nav-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    color: var(--text3); text-transform: uppercase;
+    padding: 12px 20px 4px;
+  }
+  .nav-link {
+    display: block; padding: 7px 20px; color: var(--text2);
+    text-decoration: none; font-size: 13px; border-left: 3px solid transparent;
+    transition: all .2s; cursor: pointer;
+  }
+  .nav-link:hover { color: var(--accent); background: var(--bg3); border-left-color: var(--accent); }
+  .nav-link.active { color: var(--accent); border-left-color: var(--accent); background: rgba(74,158,255,.08); }
+
+  /* ── MAIN ── */
+  #main {
+    margin-left: var(--sidebar-w);
+    padding: 32px 40px 80px;
+    max-width: 960px; width: 100%;
+    flex: 1;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #1a2540 0%, #1e2d50 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 36px 40px; margin-bottom: 32px;
+    position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: '✈';
+    position: absolute; right: 30px; top: 20px;
+    font-size: 80px; opacity: .05;
+  }
+  .hero h1 { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .hero p { color: var(--text2); font-size: 14px; }
+  .hero .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .tag {
+    background: rgba(74,158,255,.12); color: var(--accent);
+    border: 1px solid rgba(74,158,255,.25); border-radius: 20px;
+    padding: 3px 12px; font-size: 12px; font-weight: 600;
+  }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 28px; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 14px 20px; cursor: pointer; user-select: none;
+    transition: background .2s;
+  }
+  .section-header:hover { background: var(--card2); }
+  .section-header.collapsed { border-radius: var(--radius); }
+  .section-title {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 15px; color: var(--text);
+  }
+  .section-icon { font-size: 18px; }
+  .section-badge {
+    font-size: 11px; background: rgba(74,158,255,.15);
+    color: var(--accent); border-radius: 20px; padding: 2px 10px;
+    border: 1px solid rgba(74,158,255,.2);
+  }
+  .chevron { color: var(--text3); transition: transform .3s; font-size: 14px; }
+  .collapsed .chevron { transform: rotate(-90deg); }
+  .section-body {
+    background: var(--card); border: 1px solid var(--border);
+    border-top: none; border-radius: 0 0 var(--radius) var(--radius);
+    padding: 20px; overflow: hidden;
+    transition: max-height .35s ease, opacity .3s;
+  }
+  .section-body.hidden { display: none; }
+
+  /* ── CARDS ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 14px; margin: 14px 0; }
+  .card {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+    transition: border-color .2s, transform .2s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card h4 { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .card p, .card li { font-size: 13px; color: var(--text2); }
+  .card ul { padding-left: 16px; }
+
+  /* ── TABLE ── */
+  .tbl-wrap { overflow-x: auto; margin: 14px 0; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--bg3); color: var(--accent);
+    padding: 10px 14px; text-align: left; font-weight: 700;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text2); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* ── BOXES ── */
+  .box {
+    border-radius: 10px; padding: 14px 18px; margin: 12px 0;
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 13px; line-height: 1.6;
+  }
+  .box-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+  .box.recap { background: rgba(56,201,176,.08); border: 1px solid rgba(56,201,176,.25); }
+  .box.recap .box-icon, .box.recap strong { color: var(--accent2); }
+  .box.warn { background: rgba(224,160,64,.08); border: 1px solid rgba(224,160,64,.25); }
+  .box.warn .box-icon, .box.warn strong { color: var(--warn); }
+  .box.danger { background: rgba(224,82,82,.08); border: 1px solid rgba(224,82,82,.25); }
+  .box.danger .box-icon, .box.danger strong { color: var(--danger); }
+  .box.concept { background: rgba(74,158,255,.08); border: 1px solid rgba(74,158,255,.25); }
+  .box.concept .box-icon, .box.concept strong { color: var(--accent); }
+  .box.memory { background: rgba(245,166,35,.08); border: 1px solid rgba(245,166,35,.25); }
+  .box.memory .box-icon, .box.memory strong { color: var(--accent3); }
+
+  /* ── BULLETS / HEADINGS ── */
+  h2.sec-h { font-size: 16px; font-weight: 700; color: var(--accent2); margin: 18px 0 8px; }
+  h3.sub-h { font-size: 14px; font-weight: 700; color: var(--accent3); margin: 14px 0 6px; }
+  .bullets { padding-left: 20px; margin: 8px 0; }
+  .bullets li { color: var(--text2); font-size: 13.5px; margin-bottom: 4px; }
+  .bullets li strong { color: var(--text); }
+  .step-list { counter-reset: step; padding-left: 0; list-style: none; margin: 12px 0; }
+  .step-list li {
+    counter-increment: step; display: flex; gap: 12px;
+    align-items: flex-start; margin-bottom: 10px;
+  }
+  .step-list li::before {
+    content: counter(step);
+    background: var(--accent); color: #fff;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+  }
+  .step-list li span { color: var(--text2); font-size: 13.5px; }
+  .step-list li span strong { color: var(--text); }
+  p.desc { color: var(--text2); font-size: 13.5px; margin-bottom: 10px; }
+  span.kw { color: var(--accent); font-weight: 600; }
+  span.kd { color: var(--accent2); font-weight: 600; }
+  span.ks { color: var(--danger); font-weight: 600; }
+
+  /* ── COMPARE TABLE ── */
+  .compare th:first-child { width: 40%; }
+  .compare td:first-child { color: var(--text); font-weight: 600; }
+
+  /* ── IMAGE CARD ── */
+  .img-card {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin: 18px 0;
+    text-align: center; cursor: zoom-in;
+    transition: border-color .2s;
+  }
+  .img-card:hover { border-color: var(--accent); }
+  .img-card img {
+    max-width: 100%; height: auto; border-radius: 8px;
+    display: block; margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .img-caption {
+    margin-top: 10px; font-size: 12px; color: var(--text3);
+    font-style: italic; line-height: 1.5;
+  }
+  .img-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* ── LIGHTBOX ── */
+  #lightbox {
+    display: none; position: fixed; inset: 0; z-index: 9000;
+    background: rgba(0,0,0,0.88); align-items: center; justify-content: center;
+    cursor: zoom-out; padding: 20px;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 10px; object-fit: contain; }
+  #lightbox-close {
+    position: fixed; top: 18px; right: 24px;
+    font-size: 28px; color: #fff; cursor: pointer; z-index: 9001;
+    background: rgba(0,0,0,0.5); border-radius: 50%; width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,.2);
+  }
+
+  /* ── FLASHCARDS ── */
+  .flashcard-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 14px; margin: 14px 0; }
+  .flashcard {
+    height: 140px; perspective: 900px; cursor: pointer;
+  }
+  .flashcard-inner {
+    width: 100%; height: 100%; position: relative;
+    transform-style: preserve-3d; transition: transform .5s;
+  }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .fc-front, .fc-back {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: 10px; padding: 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; border: 1px solid var(--border);
+  }
+  .fc-front { background: var(--card2); color: var(--text); font-size: 13px; font-weight: 600; }
+  .fc-front .fc-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .fc-back { background: linear-gradient(135deg,#1a3050,#1e3d60); color: var(--accent2); transform: rotateY(180deg); font-size: 13px; }
+  .fc-back .fc-label { font-size: 10px; color: var(--accent2); opacity: .7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
+  /* ── QUIZ ── */
+  .quiz-block { margin: 16px 0; }
+  .quiz-q { font-weight: 600; color: var(--text); font-size: 14px; margin-bottom: 10px; }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; cursor: pointer;
+    font-size: 13px; color: var(--text2);
+    transition: all .2s; text-align: left;
+    font-family: var(--font);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .quiz-opt:hover:not(.answered) { border-color: var(--accent); color: var(--text); }
+  .quiz-opt.correct { background: rgba(61,190,122,.12); border-color: var(--success); color: var(--success); }
+  .quiz-opt.wrong { background: rgba(224,82,82,.12); border-color: var(--danger); color: var(--danger); }
+  .quiz-opt .opt-icon { width: 18px; flex-shrink: 0; }
+  .quiz-feedback { margin-top: 10px; font-size: 13px; border-radius: 8px; padding: 10px 14px; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(61,190,122,.12); color: var(--success); border: 1px solid rgba(61,190,122,.3); }
+  .quiz-feedback.no { background: rgba(224,82,82,.12); color: var(--danger); border: 1px solid rgba(224,82,82,.3); }
+  .quiz-reset {
+    margin-top: 10px; font-size: 12px; color: var(--text3);
+    cursor: pointer; background: none; border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 12px; font-family: var(--font);
+    display: none;
+  }
+  .quiz-reset.show { display: inline-block; }
+  .quiz-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── CHECKLIST ── */
+  .checklist { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+  .chk-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; cursor: pointer;
+    transition: all .2s; user-select: none;
+  }
+  .chk-item:hover { border-color: var(--accent2); }
+  .chk-item.done { background: rgba(56,201,176,.07); border-color: rgba(56,201,176,.3); }
+  .chk-item.done .chk-text { text-decoration: line-through; color: var(--text3); }
+  .chk-box {
+    width: 18px; height: 18px; border: 2px solid var(--border);
+    border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--accent2); transition: all .2s;
+  }
+  .chk-item.done .chk-box { background: var(--accent2); border-color: var(--accent2); color: var(--bg); }
+  .chk-text { font-size: 13px; color: var(--text2); }
+
+  /* ── FOCUS & EXAM MODE ── */
+  body.focus-mode .extra { display: none !important; }
+  body.exam-mode .section-body:not(.exam-visible) { display: none !important; }
+  body.exam-mode .section-header { pointer-events: none; }
+  .exam-show { display: block; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    #main { margin-left: 0; padding: 24px 18px 60px; }
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #menu-toggle { display: flex; align-items: center; }
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 799; }
+    #overlay.open { display: block; }
+  }
+  @media (max-width: 600px) {
+    .hero { padding: 24px 20px; }
+    .hero h1 { font-size: 18px; }
+    .flashcard-grid { grid-template-columns: 1fr; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── FOCUS VISIBLE ── */
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .quiz-opt:focus-visible { outline: 2px solid var(--accent); }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+  /* ── DIAGRAM FALLBACK ── */
+  .diagram-fallback {
+    background: var(--bg2); border-radius: 10px; padding: 20px;
+    text-align: left; font-size: 12px; line-height: 1.6;
+  }
+  .diag-title { font-weight: 800; font-size: 15px; color: var(--accent); margin-bottom: 12px; }
+  .diag-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; font-size: 11px; }
+  .leg { padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .leg.hot { background: rgba(224,82,82,.12); color: #e05252; }
+  .leg.cool { background: rgba(56,201,176,.12); color: #38c9b0; }
+  .leg.cold { background: rgba(74,158,255,.12); color: #4a9eff; }
+  .leg.cond { background: rgba(245,166,35,.12); color: #f5a623; }
+  .leg.ram { background: rgba(150,170,200,.12); color: #9aaec8; }
+  .leg.high-s { background: rgba(245,166,35,.12); color: #f5a623; }
+  .leg.low-s { background: rgba(74,158,255,.12); color: #4a9eff; }
+  .diag-flow { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .diag-node {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px; text-align: center;
+    font-weight: 700; color: var(--text); font-size: 12px;
+    min-width: 160px; max-width: 280px;
+  }
+  .diag-sub { font-weight: 400; color: var(--text2); font-size: 11px; margin-top: 3px; }
+  .diag-arrow { color: var(--accent); font-size: 16px; line-height: 1; }
+  .diag-arrow-h { color: var(--accent); font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .diag-arrow-h.hs { color: #f5a623; }
+  .diag-arrow-h.ls { color: #4a9eff; }
+  .diag-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .diag-row-wrap { width: 100%; }
+  .full-row { width: 100%; }
+  .center-row { justify-content: center; }
+  .side-label { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .high-label { color: #f5a623; }
+  .low-label { color: #4a9eff; }
+  .hot-node { border-color: rgba(224,82,82,.4); background: rgba(224,82,82,.07); }
+  .acm-node { border-color: rgba(74,158,255,.4); background: rgba(74,158,255,.07); color: var(--accent); }
+  .hx-node { border-color: rgba(56,201,176,.3); background: rgba(56,201,176,.07); }
+  .ws-node { border-color: rgba(74,158,255,.3); background: rgba(74,158,255,.07); }
+  .bypass-node { border-color: rgba(245,166,35,.3); background: rgba(245,166,35,.07); }
+  .mix-node { border-color: rgba(56,201,176,.3); background: rgba(56,201,176,.07); }
+  .ctrl-node { border-color: rgba(150,100,200,.3); background: rgba(150,100,200,.07); }
+  .cabin-node { border-color: rgba(245,166,35,.4); background: rgba(245,166,35,.07); color: #f5a623; }
+  .ram-node { border-color: rgba(150,170,200,.3); background: rgba(150,170,200,.07); }
+  .comp-node { border-color: rgba(224,82,82,.4); background: rgba(224,82,82,.07); }
+  .cond-node { border-color: rgba(245,166,35,.3); background: rgba(245,166,35,.07); }
+  .recv-node, .recv-node2 { border-color: rgba(245,166,35,.3); background: rgba(245,166,35,.07); }
+  .evap-node { border-color: rgba(74,158,255,.4); background: rgba(74,158,255,.07); color: var(--accent); }
+  .expv-node { border-color: rgba(74,158,255,.3); background: rgba(74,158,255,.07); }
+  .cabin-air { border-color: rgba(224,82,82,.3); background: rgba(224,82,82,.07); }
+  .cool-air { border-color: rgba(74,158,255,.3); background: rgba(74,158,255,.07); }
+  .ram-out, .ram-heat { border-color: rgba(150,170,200,.3); background: rgba(150,170,200,.07); }
+  @media (max-width:600px) {
+    .diag-row { flex-direction: column; }
+    .diag-arrow-h { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="overlay"></div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" role="dialog" aria-label="Image Zoom">
+  <div id="lightbox-close" aria-label="Close">✕</div>
+  <img id="lightbox-img" src="" alt="" />
+</div>
+
+<!-- TOP BAR -->
+<nav id="topbar">
+  <button id="menu-toggle" aria-label="Toggle navigation">☰</button>
+  <span class="logo">✈ AVT 4513 — Air Conditioning</span>
+  <span class="spacer"></span>
+  <button class="tb-btn" id="btn-expand-all">Expand All</button>
+  <button class="tb-btn" id="btn-collapse-all">Collapse All</button>
+  <button class="tb-btn" id="btn-focus">⚡ Focus Mode</button>
+  <button class="tb-btn" id="btn-exam">📋 Exam Mode</button>
+</nav>
+
+<!-- LAYOUT -->
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" role="navigation" aria-label="Table of Contents">
+    <div class="nav-label">Navigation</div>
+    <a class="nav-link" onclick="scrollTo('s0')">Overview</a>
+    <a class="nav-link" onclick="scrollTo('s1')">System Types</a>
+    <a class="nav-link" onclick="scrollTo('s2')">Air Cycle System</a>
+    <a class="nav-link" onclick="scrollTo('s2b')">ACM Components</a>
+    <a class="nav-link" onclick="scrollTo('s2c')">Pneumatic Supply</a>
+    <a class="nav-link" onclick="scrollTo('s3')">Vapor Cycle System</a>
+    <a class="nav-link" onclick="scrollTo('s3b')">Vapor Components</a>
+    <a class="nav-link" onclick="scrollTo('s3c')">High / Low Side</a>
+    <a class="nav-link" onclick="scrollTo('s4')">Refrigeration Theory</a>
+    <a class="nav-link" onclick="scrollTo('s5')">Flow &amp; Temp Control</a>
+    <a class="nav-link" onclick="scrollTo('s6')">Safety &amp; Warnings</a>
+    <a class="nav-link" onclick="scrollTo('s7')">System Comparison</a>
+    <a class="nav-link" onclick="scrollTo('s8')">Flashcards</a>
+    <a class="nav-link" onclick="scrollTo('s9')">Self-Check Quiz</a>
+    <a class="nav-link" onclick="scrollTo('s10')">Study Checklist</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <h1>Aircraft Air Conditioning</h1>
+      <p>Module 11.4 · ATA 21 · AVT 4513 Aircraft Conditioning and Oxygen</p>
+      <div class="tags">
+        <span class="tag">EASA Part-66</span>
+        <span class="tag">ATA 21</span>
+        <span class="tag">Air Cycle</span>
+        <span class="tag">Vapor Cycle</span>
+        <span class="tag">Exam Revision</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 0 — OVERVIEW
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s0">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">🎯</span>
+          What Does Aircraft Air Conditioning Do?
+          <span class="section-badge">Core</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+        <p class="desc">Aircraft A/C systems manage cabin air for comfort, safety, and pressurization.</p>
+        <div class="cards-grid">
+          <div class="card"><h4>🌡️ Cool</h4><p>Reduces hot bleed or ambient air to comfortable cabin temperature.</p></div>
+          <div class="card"><h4>💨 Airflow</h4><p>Controls the quantity and distribution of conditioned air.</p></div>
+          <div class="card"><h4>💧 Moisture</h4><p>Removes or manages humidity inside the cabin.</p></div>
+          <div class="card"><h4>🔒 Pressurization</h4><p>Air cycle systems can support cabin pressurization on turbine aircraft.</p></div>
+        </div>
+        <div class="box recap extra">
+          <span class="box-icon">⚡</span>
+          <div><strong>Quick Recap:</strong> A/C systems cool, circulate, dehumidify, and — on turbine aircraft — support pressurization of cabin air.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 1 — SYSTEM TYPES
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s1">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">⚖️</span>
+          Two System Types at a Glance
+          <span class="section-badge">Key Concept</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Feature</th><th>Air Cycle</th><th>Vapor Cycle</th></tr></thead>
+            <tbody>
+              <tr><td>Aircraft Type</td><td>Turbine aircraft</td><td>Reciprocating aircraft</td></tr>
+              <tr><td>Working Medium</td><td>Engine bleed air / APU air</td><td>Refrigerant (R134a)</td></tr>
+              <tr><td>System Type</td><td>Open</td><td>Closed</td></tr>
+              <tr><td>Pressurization</td><td>Yes — supports pressurization</td><td>No — cooling only</td></tr>
+              <tr><td>Also Called</td><td>Air conditioning pack / pack</td><td>Vapor cycle or refrigeration</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="box concept">
+          <span class="box-icon">💡</span>
+          <div><strong>Key Concept:</strong> Air cycle = <span class="kw">open system</span> using bleed air. Vapor cycle = <span class="kd">closed system</span> using refrigerant. Only air cycle supports pressurization.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 2 — AIR CYCLE SYSTEM
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s2">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">🌀</span>
+          Air Cycle Air Conditioning
+          <span class="section-badge">ATA 21</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+        <p class="desc">An open system that takes hot bleed air, cools it through compression and expansion, removes moisture, and delivers conditioned air to the cabin.</p>
+
+        <div class="box concept extra">
+          <span class="box-icon">💡</span>
+          <div><strong>Definition:</strong> The air cycle system (also called the <span class="kw">air conditioning pack</span>) uses <span class="kw">bleed air</span> from the engine compressor, processes it through heat exchangers and an ACM, and supplies cooled, dehumidified air.</div>
+        </div>
+
+        <h2 class="sec-h">Air Cycle System Flow Sequence</h2>
+        <ol class="step-list">
+          <li><span><strong>Bleed Air</strong> — Hot, pressurized air extracted from engine compressor.</span></li>
+          <li><span><strong>Primary Heat Exchanger</strong> — Ram air cools bleed air (acts like a radiator).</span></li>
+          <li><span><strong>ACM Compressor</strong> — Air enters the ACM; compression raises temperature again.</span></li>
+          <li><span><strong>Secondary Heat Exchanger</strong> — Ram air cools the compressed air again.</span></li>
+          <li><span><strong>ACM Turbine</strong> — Air expands → large temperature drop → air becomes very cold.</span></li>
+          <li><span><strong>Water Separator</strong> — Removes condensed moisture from cold, saturated air.</span></li>
+          <li><span><strong>Mix &amp; Deliver</strong> — Warm bypass air mixes with cold conditioned air → correct cabin temperature.</span></li>
+        </ol>
+
+        <div class="box memory">
+          <span class="box-icon">🧠</span>
+          <div><strong>Memory Line:</strong> <span class="kw">Cool → Compress → Cool Again → Expand → Dry → Mix → Deliver</span></div>
+        </div>
+
+        <!-- IMAGE 1 — Air Cycle Diagram -->
+        <div class="img-card" id="air-cycle-card" tabindex="0" aria-label="Air Cycle Diagram" role="img">
+          <img
+            id="air-cycle-img"
+            src="images/air_cycle_diagram.jpeg"
+            alt="Air Cycle Air Conditioning System Diagram showing bleed air path, heat exchangers, ACM, water separator and mixing valve"
+          />
+          <div id="air-cycle-fallback" class="diagram-fallback" style="display:none;">
+            <div class="diag-title">✈️ Air Cycle Air Conditioning System</div>
+            <div class="diag-legend">
+              <span class="leg hot">● Hot Air</span>
+              <span class="leg cool">● Cooler Air</span>
+              <span class="leg cold">● Cold Air</span>
+              <span class="leg cond">● Conditioned Air</span>
+              <span class="leg ram">● Ram Air</span>
+            </div>
+            <div class="diag-flow">
+              <div class="diag-node hot-node">Engine / Pneumatic Duct<div class="diag-sub">Bleed Air Source</div></div>
+              <div class="diag-arrow">↓</div>
+              <div class="diag-node">Isolation Valve → Pack Valve<div class="diag-sub">Controls bleed air entry</div></div>
+              <div class="diag-arrow">↓</div>
+              <div class="diag-row">
+                <div class="diag-node hx-node">Primary Heat Exchanger<div class="diag-sub">Ram air cools hot bleed air</div></div>
+                <div class="diag-arrow-h">→</div>
+                <div class="diag-node hx-node">Secondary Heat Exchanger<div class="diag-sub">Ram air cools ACM-compressed air</div></div>
+                <div class="diag-arrow-h">←</div>
+                <div class="diag-node ram-node">Ram Air<div class="diag-sub">Ram Air Door + Actuator</div></div>
+              </div>
+              <div class="diag-arrow">↓</div>
+              <div class="diag-node acm-node">Air Cycle Machine (ACM)<div class="diag-sub">Compressor + Turbine on common shaft — major cooling effect</div></div>
+              <div class="diag-arrow">↓</div>
+              <div class="diag-row">
+                <div class="diag-node ws-node">Water Separator<div class="diag-sub">Removes moisture from cold air (2°C)</div></div>
+                <div class="diag-arrow-h">←</div>
+                <div class="diag-node bypass-node">Water Sep. Anti-Ice Valve<div class="diag-sub">Warm bypass air prevents freezing</div></div>
+              </div>
+              <div class="diag-arrow">↓</div>
+              <div class="diag-row">
+                <div class="diag-node mix-node">Air Mix Valve<div class="diag-sub">Mixes warm bypass + cold conditioned air</div></div>
+                <div class="diag-arrow-h">←</div>
+                <div class="diag-node ctrl-node">Auto Temp Controller<div class="diag-sub">Cockpit-selected temperature</div></div>
+              </div>
+              <div class="diag-arrow">↓</div>
+              <div class="diag-node cabin-node">Mixing Chamber → Passenger Cabin<div class="diag-sub">Conditioned air delivered</div></div>
+            </div>
+          </div>
+          <p class="img-caption">Air cycle air conditioning system showing bleed air cooling, ACM operation, moisture removal, and final air mixing.</p>
+          <p class="img-hint">🔍 Click to zoom</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 2B — ACM COMPONENTS
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s2b">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">🔧</span>
+          Air Cycle Main Components
+          <span class="section-badge">Detail</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="cards-grid">
+          <div class="card">
+            <h4>🔁 Air Cycle Machine (ACM)</h4>
+            <ul class="bullets">
+              <li>Compressor + turbine on one shaft</li>
+              <li>Produces the major cooling effect</li>
+              <li><strong>Heart of the air cycle system</strong></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🚪 Pack Valve</h4>
+            <ul class="bullets">
+              <li>Controls bleed air entering the pack</li>
+              <li>Opens, closes, and modulates flow</li>
+              <li>Auto-closes on overheat</li>
+              <li>Also called: supply shutoff valve</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🔀 Mixing Valve</h4>
+            <ul class="bullets">
+              <li>Routes warm air around cooling section</li>
+              <li>Mixes warm + cold air for temp control</li>
+              <li>Also called: trim air valve / temperature control valve</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🌡️ Heat Exchangers</h4>
+            <ul class="bullets">
+              <li><strong>Primary:</strong> first-stage cooling via ram air</li>
+              <li><strong>Secondary:</strong> cools ACM-compressed air</li>
+              <li>Ground: fan assists airflow</li>
+              <li>Flight: ram air doors regulate flow</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>💧 Water Separator</h4>
+            <ul class="bullets">
+              <li>Removes moisture from cold air</li>
+              <li>Prevents water entering cabin</li>
+              <li>Usually <strong>no moving parts</strong></li>
+              <li>Air swirls → water drains out</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🧊 Refrigeration Bypass Valve</h4>
+            <ul class="bullets">
+              <li>Prevents water separator freezing</li>
+              <li>Adds warm bypass air upstream</li>
+              <li>Also called: anti-ice valve</li>
+            </ul>
+          </div>
+        </div>
+        <div class="box warn extra">
+          <span class="box-icon">⚠️</span>
+          <div><strong>Exam Point:</strong> The <span class="kw">ACM</span> is the heart of the air cycle system. The <span class="kw">pack valve</span> automatically closes during overheat or abnormal conditions.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 2C — PNEUMATIC SUPPLY
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s2c">
+      <div class="section-header" tabindex="0" aria-expanded="false" class="collapsed">
+        <div class="section-title">
+          <span class="section-icon">💨</span>
+          Pneumatic Supply
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body hidden extra">
+        <p class="desc">Bleed air source and typical parameters for the air cycle system.</p>
+        <div class="cards-grid">
+          <div class="card"><h4>Source</h4><p>Engine compressor stages or APU pneumatic output.</p></div>
+          <div class="card"><h4>Typical Pressure</h4><p><span class="kw">30–75 psi</span> bleed air supply.</p></div>
+          <div class="card"><h4>Supplies</h4>
+            <ul class="bullets">
+              <li>Air conditioning packs</li>
+              <li>Anti-ice systems</li>
+              <li>Hydraulic pressurization</li>
+              <li>Other pneumatic systems</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 3 — VAPOR CYCLE
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s3">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">❄️</span>
+          Vapor Cycle Air Conditioning
+          <span class="section-badge">Key Concept</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+        <p class="desc">A closed refrigerant system that moves heat out of the cabin — it does not "create cold."</p>
+
+        <div class="box concept">
+          <span class="box-icon">💡</span>
+          <div><strong>Core Principle:</strong> Vapor cycle systems <span class="ks">do not create cold</span> — they <span class="kw">move heat from inside the cabin to outside the aircraft</span> using a refrigerant loop.</div>
+        </div>
+
+        <h2 class="sec-h">Vapor Cycle Flow Sequence</h2>
+        <ol class="step-list">
+          <li><span><strong>Receiver Dryer</strong> — Stores refrigerant, filters contaminants, removes moisture.</span></li>
+          <li><span><strong>Expansion Valve</strong> — Meters refrigerant into evaporator; causes pressure drop.</span></li>
+          <li><span><strong>Evaporator</strong> — Refrigerant absorbs cabin heat; liquid changes to vapor; cabin air cools.</span></li>
+          <li><span><strong>Compressor</strong> — Compresses low-pressure vapor; raises pressure and temperature.</span></li>
+          <li><span><strong>Condenser</strong> — Rejects heat to outside air; vapor condenses back to liquid.</span></li>
+          <li><span><strong>Back to Receiver Dryer</strong> — Cycle repeats continuously.</span></li>
+        </ol>
+
+        <div class="box memory">
+          <span class="box-icon">🧠</span>
+          <div><strong>Memory Line:</strong> <span class="kw">Meter → Evaporate → Compress → Condense → Store → Repeat</span></div>
+        </div>
+
+        <!-- IMAGE 2 — Vapor Cycle Diagram -->
+        <div class="img-card" id="vapor-cycle-card" tabindex="0" aria-label="Vapor Cycle Diagram" role="img">
+          <img
+            id="vapor-cycle-img"
+            src="images/vapor_cycle_diagram.jpeg"
+            alt="Vapor Cycle Air Conditioning System Diagram showing refrigerant flow through receiver dryer, expansion valve, evaporator, compressor, and condenser"
+          />
+          <div id="vapor-cycle-fallback" class="diagram-fallback" style="display:none;">
+            <div class="diag-title">❄️ Vapor Cycle Air Conditioning System</div>
+            <div class="diag-legend">
+              <span class="leg high-s">● High Side (High Pressure/Temp)</span>
+              <span class="leg low-s">● Low Side (Low Pressure/Temp)</span>
+            </div>
+            <div class="diag-flow">
+              <div class="diag-row-wrap">
+                <div class="side-label high-label">HIGH SIDE →</div>
+                <div class="diag-row full-row">
+                  <div class="diag-node comp-node">Compressor<div class="diag-sub">Heart of vapor cycle. Compresses low-P vapor → High-P/High-T vapor</div></div>
+                  <div class="diag-arrow-h hs">→</div>
+                  <div class="diag-node cond-node">Condenser<div class="diag-sub">Rejects heat to ram air. Vapor → High-P liquid</div></div>
+                  <div class="diag-arrow-h hs">→</div>
+                  <div class="diag-node recv-node">Receiver Dryer<div class="diag-sub">Stores liquid. Removes moisture (desiccant). Sight glass.</div></div>
+                </div>
+              </div>
+              <div class="diag-row-wrap">
+                <div class="side-label low-label">← LOW SIDE</div>
+                <div class="diag-row full-row">
+                  <div class="diag-node evap-node">Evaporator<div class="diag-sub">Absorbs cabin heat. Low-P liquid → Low-P vapor. Cabin cools.</div></div>
+                  <div class="diag-arrow-h ls">←</div>
+                  <div class="diag-node expv-node">Expansion Valve<div class="diag-sub">Meters refrigerant. Causes pressure drop. Controls superheat.</div></div>
+                  <div class="diag-arrow-h ls">←</div>
+                  <div class="diag-node recv-node2">From Receiver Dryer<div class="diag-sub">High-P liquid fed to expansion valve</div></div>
+                </div>
+              </div>
+              <div class="diag-row center-row">
+                <div class="diag-node cabin-air">Warm Air from Cabin →<div class="diag-sub">Blower forces warm cabin air across evaporator</div></div>
+                <div class="diag-arrow-h">→</div>
+                <div class="diag-node cool-air">→ Cool Air to Cabin<div class="diag-sub">Heat removed by evaporator</div></div>
+              </div>
+              <div class="diag-row center-row">
+                <div class="diag-node ram-out">Ambient Ram Air In<div class="diag-sub">Flows through condenser coils</div></div>
+                <div class="diag-arrow-h">→</div>
+                <div class="diag-node ram-heat">Heat Returned Outside<div class="diag-sub">Cabin heat expelled overboard</div></div>
+              </div>
+            </div>
+          </div>
+          <p class="img-caption">Vapor cycle air conditioning system showing refrigerant flow, heat absorption, compression, condensation, and high/low side regions.</p>
+          <p class="img-hint">🔍 Click to zoom</p>
+        </div>
+
+        <h3 class="sub-h">Refrigerant Types</h3>
+        <div class="cards-grid">
+          <div class="card">
+            <h4>🔴 R12 (Old)</h4>
+            <ul class="bullets">
+              <li>Harmful to ozone layer</li>
+              <li>No longer commonly used</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🟢 R134a (Modern)</h4>
+            <ul class="bullets">
+              <li>Boiling point ≈ <strong>−26°C</strong></li>
+              <li>Environmentally safer than R12</li>
+              <li>Can displace oxygen</li>
+              <li>Can cause frost burns</li>
+            </ul>
+          </div>
+        </div>
+        <div class="box danger">
+          <span class="box-icon">⚠️</span>
+          <div><strong>CRITICAL:</strong> <span class="ks">NEVER mix R12 and R134a.</span> Always use the refrigerant specified for the system. Use gloves and eye protection when handling refrigerant.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 3B — VAPOR CYCLE COMPONENTS
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s3b">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">🔩</span>
+          Vapor Cycle Main Components
+          <span class="section-badge">Detail</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="cards-grid">
+          <div class="card">
+            <h4>⚙️ Compressor — Heart of Vapor Cycle</h4>
+            <ul class="bullets">
+              <li>Circulates refrigerant</li>
+              <li>Compresses low-pressure vapor</li>
+              <li>Raises temperature + sends to condenser</li>
+              <li><strong>Must compress vapor only — never liquid</strong></li>
+              <li>Types: engine-driven / electric / hydraulic</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🫙 Receiver Dryer</h4>
+            <ul class="bullets">
+              <li>Stores liquid refrigerant</li>
+              <li>Removes moisture (desiccant)</li>
+              <li>Filters contaminants</li>
+              <li>Sight glass — bubbles = low refrigerant</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🔧 Expansion Valve</h4>
+            <ul class="bullets">
+              <li>Controls refrigerant flow into evaporator</li>
+              <li>Too little → excessive superheat, poor cooling</li>
+              <li>Too much → liquid reaches compressor → damage</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🌡️ Evaporator</h4>
+            <ul class="bullets">
+              <li>Absorbs heat from cabin air</li>
+              <li>Liquid changes to low-pressure vapor</li>
+              <li><strong>Where cabin heat is absorbed</strong></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🌬️ Condenser</h4>
+            <ul class="bullets">
+              <li>Rejects heat to outside air</li>
+              <li>Vapor → liquid</li>
+              <li><strong>Where heat leaves the aircraft</strong></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🔌 Service Valves</h4>
+            <ul class="bullets">
+              <li>Access for servicing high + low sides</li>
+              <li>Used for charging refrigerant</li>
+              <li>Used for system maintenance</li>
+            </ul>
+          </div>
+        </div>
+        <div class="box danger extra">
+          <span class="box-icon">⚠️</span>
+          <div><strong>Moisture in Vapor Cycle:</strong> Moisture can form <span class="ks">acid</span>, cause <span class="ks">corrosion</span>, or <span class="ks">freeze and block the system</span>. The receiver dryer removes it using desiccant.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 3C — HIGH / LOW SIDE
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s3c">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">⬆️⬇️</span>
+          High Side vs Low Side
+          <span class="section-badge">Exam Focus</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Feature</th><th>Low Side</th><th>High Side</th></tr></thead>
+            <tbody>
+              <tr><td>Pressure</td><td>Low pressure</td><td>High pressure</td></tr>
+              <tr><td>Temperature</td><td>Low temperature</td><td>High temperature</td></tr>
+              <tr><td>Process</td><td>Heat absorbed here</td><td>Heat rejected here</td></tr>
+              <tr><td>Components</td><td>Receiver dryer → Evaporator</td><td>Condenser → Receiver dryer</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="box concept extra">
+          <span class="box-icon">💡</span>
+          <div><strong>Dividing Components:</strong> The <span class="kw">compressor</span> and <span class="kw">expansion valve</span> divide the high side from the low side.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 4 — REFRIGERATION THEORY
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s4">
+      <div class="section-header" tabindex="0" aria-expanded="false" class="collapsed">
+        <div class="section-title">
+          <span class="section-icon">🔬</span>
+          Refrigeration Theory
+          <span class="section-badge">Theory</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body hidden extra">
+        <div class="cards-grid">
+          <div class="card">
+            <h4>🌡️ Heat</h4>
+            <p>A form of energy. Always flows <strong>hot → cold</strong>.</p>
+          </div>
+          <div class="card">
+            <h4>🧊 Latent Heat</h4>
+            <p>Heat absorbed or released during a <strong>change of state</strong>. Temperature stays <strong>constant</strong> during state change.</p>
+          </div>
+          <div class="card">
+            <h4>💨 Superheat</h4>
+            <p>Heating vapor <strong>after all liquid has evaporated</strong>.</p>
+          </div>
+          <div class="card">
+            <h4>🔄 Boiling Point</h4>
+            <p>Changes with pressure. Higher pressure → higher boiling point. Lower pressure → lower boiling point.</p>
+          </div>
+          <div class="card">
+            <h4>📦 Vapor Pressure</h4>
+            <p>Pressure of vapor above a liquid in a closed container. Depends on substance type and temperature.</p>
+          </div>
+        </div>
+        <div class="box recap">
+          <span class="box-icon">⚡</span>
+          <div><strong>Exam Key:</strong> Vapor cycle systems exploit <span class="kw">latent heat</span>. Refrigerant boiling point is lowered by the expansion valve (pressure drop) to absorb cabin heat.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 5 — FLOW, TEMP & HUMIDITY CONTROL
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s5">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">🎛️</span>
+          Flow, Temperature &amp; Humidity Control
+          <span class="section-badge">Systems</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <h2 class="sec-h">Flow Control</h2>
+        <p class="desc extra">Engine RPM, altitude, and air density all change during flight — flow control keeps cabin airflow constant.</p>
+        <div class="box concept extra">
+          <span class="box-icon">💡</span>
+          <div>A <span class="kw">mass airflow controller</span> maintains constant cabin airflow despite changing bleed air pressure and density.</div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="sec-h">Temperature Control — 5-Step Process</h2>
+        <ol class="step-list">
+          <li><span><strong>Crew Selects</strong> desired temperature from cockpit panel.</span></li>
+          <li><span><strong>Sensors Monitor</strong> cabin, cockpit, conditioned air duct, and distribution duct temperatures.</span></li>
+          <li><span><strong>Controller Compares</strong> actual vs. selected temperature.</span></li>
+          <li><span><strong>Valve Controlled</strong> — signals mixing valve, trim air valve, or temperature control valve.</span></li>
+          <li><span><strong>Warm + Cold Air Mix</strong> → correct final cabin supply temperature.</span></li>
+        </ol>
+
+        <hr class="divider" />
+        <h2 class="sec-h">Humidity Control</h2>
+        <div class="cards-grid extra">
+          <div class="card">
+            <h4>💧 Moisture Removal</h4>
+            <p>Water separators in the air cycle system remove excess moisture from conditioned air.</p>
+          </div>
+          <div class="card">
+            <h4>💦 Humidification</h4>
+            <p>At high altitude cabin air may become too dry. Some aircraft pump water from a tank and spray moisture into conditioned air, monitored electronically.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 6 — SAFETY & WARNINGS
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s6">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">🚨</span>
+          Safety &amp; Warning Systems
+          <span class="section-badge">Safety-Critical</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+        <div class="box danger">
+          <span class="box-icon">⚠️</span>
+          <div>
+            <strong>Main Hazards:</strong>
+            <ul class="bullets" style="margin-top:6px;">
+              <li><span class="ks">Overheating</span> — Hot pneumatic duct leaks can become fire hazards.</li>
+              <li><span class="ks">Pack Overheat</span> — Excessive outlet temp may damage the system.</li>
+              <li><span class="ks">Smoke</span> — May indicate fire or system malfunction.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2 class="sec-h">Protection Devices</h2>
+        <div class="cards-grid">
+          <div class="card">
+            <h4>🔁 Continuous Loop Detectors</h4>
+            <ul class="bullets">
+              <li>Detect heat along pneumatic ducts</li>
+              <li>Installed around ducts, APU, A/C bays</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🌡️ Thermal Switches</h4>
+            <ul class="bullets">
+              <li>Monitor pack outlet temperature</li>
+              <li>Auto-shutdown on overheat</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🚪 Shutoff / Isolation Valves</h4>
+            <ul class="bullets">
+              <li>Isolate faulty pneumatic sections</li>
+              <li>Allow continued safe operation</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>🔔 Warning Annunciations</h4>
+            <ul class="bullets">
+              <li>Cockpit warnings for: overheat, smoke, pneumatic leaks</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 7 — COMPARISON SUMMARY
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s7">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">📊</span>
+          Air Cycle vs Vapor Cycle — Full Summary
+          <span class="section-badge">Exam Focus</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+        <div class="tbl-wrap">
+          <table class="compare">
+            <thead><tr><th>Feature</th><th>Air Cycle</th><th>Vapor Cycle</th></tr></thead>
+            <tbody>
+              <tr><td>Common On</td><td>Turbine aircraft</td><td>Reciprocating aircraft</td></tr>
+              <tr><td>Working Medium</td><td>Bleed air</td><td>Refrigerant R134a</td></tr>
+              <tr><td>Pressurization Support</td><td>Yes</td><td>No</td></tr>
+              <tr><td>System Type</td><td>Open</td><td>Closed</td></tr>
+              <tr><td>Cooling Principle</td><td>Compression + expansion</td><td>Evaporation + condensation</td></tr>
+              <tr><td>Heart of System</td><td>ACM</td><td>Compressor</td></tr>
+              <tr><td>Moisture Removal</td><td>Water separator</td><td>Receiver dryer</td></tr>
+              <tr><td>Final Temp Adjustment</td><td>Mixing valve</td><td>Expansion valve</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="box recap">
+          <span class="box-icon">⚡</span>
+          <div><strong>Quick Recap:</strong> Air Cycle = open, bleed air, turbine, ACM, pressurization capable. Vapor Cycle = closed, R134a, reciprocating, compressor, cooling only.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 8 — FLASHCARDS
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s8">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">🔁</span>
+          Flashcards
+          <span class="section-badge">Active Learning</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+        <p class="desc" style="margin-bottom:14px;">Click a card to reveal the answer. Press Space or Enter when focused.</p>
+        <div class="flashcard-grid">
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What is the heart of the air cycle system?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>What is the heart of the air cycle system?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>The Air Cycle Machine (ACM) — compressor and turbine on a common shaft.</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What does the water separator do?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>What does the water separator do?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>Removes condensed moisture from cold, saturated air before cabin delivery. Usually has no moving parts.</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What refrigerant is used in modern vapor cycle systems?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>What refrigerant is used in modern vapor cycle systems?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>R134a — boiling point ≈ −26°C. Environmentally safer than R12.</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: Where does heat absorption occur in the vapor cycle?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>Where does heat absorption occur in the vapor cycle?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>At the Evaporator — refrigerant absorbs cabin heat and changes from liquid to vapor.</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: Where does heat rejection occur in the vapor cycle?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>Where does heat leave the aircraft in the vapor cycle?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>At the Condenser — vapor condenses back to liquid and heat is rejected to outside air.</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What divides the high and low sides of the vapor cycle?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>What components divide the high and low sides?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>The Compressor (high side start) and the Expansion Valve (low side start).</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What is the pack valve also called?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>What is the pack valve also called?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>Supply shutoff valve. Automatically closes during overheat or abnormal conditions.</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: Can vapor cycle systems pressurize the cabin?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>Can the vapor cycle system pressurize the cabin?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>No — it is a closed system used for cooling only. Only air cycle systems can support pressurization.</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What is latent heat?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>What is latent heat?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>Heat absorbed or released during a change of state — temperature remains constant during the change.</div>
+            </div>
+          </div>
+
+          <div class="flashcard" tabindex="0" role="button" aria-label="Flashcard: What is the refrigeration bypass valve also called?">
+            <div class="flashcard-inner">
+              <div class="fc-front"><div class="fc-label">Question</div>What is the refrigeration bypass valve also called?</div>
+              <div class="fc-back"><div class="fc-label">Answer</div>Anti-ice valve or temperature control valve. Prevents water separator freezing.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 9 — QUIZ
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s9">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">🧪</span>
+          Self-Check Quiz
+          <span class="section-badge">Exam Prep</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body exam-visible">
+
+        <!-- Q1 -->
+        <div class="quiz-block" data-quiz>
+          <p class="quiz-q">1. Which component is considered the heart of the air cycle system?</p>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Pack Valve</button>
+            <button class="quiz-opt" data-correct="true"><span class="opt-icon">○</span>Air Cycle Machine (ACM)</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Water Separator</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Primary Heat Exchanger</button>
+          </div>
+          <div class="quiz-feedback"></div>
+          <button class="quiz-reset">↺ Try Again</button>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Q2 -->
+        <div class="quiz-block" data-quiz>
+          <p class="quiz-q">2. The vapor cycle system is described as a:</p>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Open system using bleed air</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Open system using refrigerant</button>
+            <button class="quiz-opt" data-correct="true"><span class="opt-icon">○</span>Closed system using refrigerant</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Closed system using bleed air</button>
+          </div>
+          <div class="quiz-feedback"></div>
+          <button class="quiz-reset">↺ Try Again</button>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Q3 -->
+        <div class="quiz-block" data-quiz>
+          <p class="quiz-q">3. What happens to temperature during a change of state (latent heat)?</p>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Temperature rises sharply</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Temperature drops sharply</button>
+            <button class="quiz-opt" data-correct="true"><span class="opt-icon">○</span>Temperature remains constant</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Temperature fluctuates unpredictably</button>
+          </div>
+          <div class="quiz-feedback"></div>
+          <button class="quiz-reset">↺ Try Again</button>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Q4 -->
+        <div class="quiz-block" data-quiz>
+          <p class="quiz-q">4. Which component in the vapor cycle prevents moisture from entering the system by using desiccant?</p>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Condenser</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Evaporator</button>
+            <button class="quiz-opt" data-correct="true"><span class="opt-icon">○</span>Receiver Dryer</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Expansion Valve</button>
+          </div>
+          <div class="quiz-feedback"></div>
+          <button class="quiz-reset">↺ Try Again</button>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Q5 -->
+        <div class="quiz-block" data-quiz>
+          <p class="quiz-q">5. In the air cycle system, after the ACM turbine, what happens to the air?</p>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>It is compressed and heated</button>
+            <button class="quiz-opt" data-correct="true"><span class="opt-icon">○</span>It expands and becomes very cold</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>It is humidified and warmed</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>It bypasses the water separator</button>
+          </div>
+          <div class="quiz-feedback"></div>
+          <button class="quiz-reset">↺ Try Again</button>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Q6 -->
+        <div class="quiz-block" data-quiz>
+          <p class="quiz-q">6. Which of the following refrigerants is harmful to the ozone layer and no longer commonly used?</p>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>R134a</button>
+            <button class="quiz-opt" data-correct="true"><span class="opt-icon">○</span>R12</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>R22</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>R410a</button>
+          </div>
+          <div class="quiz-feedback"></div>
+          <button class="quiz-reset">↺ Try Again</button>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Q7 -->
+        <div class="quiz-block" data-quiz>
+          <p class="quiz-q">7. The pack valve automatically closes during which condition?</p>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Normal cruise flight</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Ground operation with pack on</button>
+            <button class="quiz-opt" data-correct="true"><span class="opt-icon">○</span>Overheat or abnormal condition</button>
+            <button class="quiz-opt" data-correct="false"><span class="opt-icon">○</span>Descent phase only</button>
+          </div>
+          <div class="quiz-feedback"></div>
+          <button class="quiz-reset">↺ Try Again</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 10 — CHECKLIST
+    ══════════════════════════════════════════════════════ -->
+    <div class="section" id="s10">
+      <div class="section-header" tabindex="0" aria-expanded="true">
+        <div class="section-title">
+          <span class="section-icon">✅</span>
+          Study Checklist
+          <span class="section-badge">Track Progress</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <p class="desc" style="margin-bottom:12px;">Click each topic to mark as reviewed.</p>
+        <div class="checklist">
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Understand the purpose of aircraft air conditioning</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Distinguish air cycle vs vapor cycle systems</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Explain the air cycle system flow sequence (7 steps)</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Describe the ACM — compressor + turbine on common shaft</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Identify all air cycle components and their functions</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Explain the vapor cycle flow sequence (6 steps)</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Describe high side vs low side in vapor cycle</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Know R134a properties and R12 vs R134a safety rules</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Understand latent heat, superheat, and boiling point</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Explain temperature control 5-step process</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">List safety hazards and protection devices</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Complete all flashcards without looking</span></div>
+          <div class="chk-item"><div class="chk-box"></div><span class="chk-text">Score 100% on self-check quiz</span></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+
+  // ── EMBEDDED IMAGES ──────────────────────────────────────
+ // ── IMAGE HANDLING ────────────────────────────────────────
+const imageCards = document.querySelectorAll('.img-card');
+
+imageCards.forEach(card => {
+  const img = card.querySelector('img');
+
+  if (!img) return;
+
+  card.addEventListener('click', () => {
+    if (img.complete && img.naturalWidth > 0) {
+      window.openLightbox(img);
+    }
+  });
+
+  card.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && img.complete && img.naturalWidth > 0) {
+      e.preventDefault();
+      window.openLightbox(img);
+    }
+  });
+
+  img.addEventListener('error', () => {
+    card.style.cursor = 'default';
+    img.insertAdjacentHTML(
+      'afterend',
+      '<p class="img-caption" style="color:#e05252;">Image not found. Check the file path and name inside the images folder.</p>'
+    );
+  });
+});
+  // ── PROGRESS BAR ─────────────────────────────────────────
+  const progressBar = document.getElementById('progress-bar');
+  document.addEventListener('scroll', () => {
+    const st = window.scrollY;
+    const dh = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (dh > 0 ? (st / dh) * 100 : 0) + '%';
+  });
+
+  // ── SIDEBAR / OVERLAY ─────────────────────────────────────
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const menuToggle = document.getElementById('menu-toggle');
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  // ── SCROLL TO ─────────────────────────────────────────────
+  window.scrollTo = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.innerWidth <= 900) {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    }
+  };
+
+  // ── ACTIVE NAV LINK ───────────────────────────────────────
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sectionIds = ['s0','s1','s2','s2b','s2c','s3','s3b','s3c','s4','s5','s6','s7','s8','s9','s10'];
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const idx = sectionIds.indexOf(e.target.id);
+        if (idx >= 0 && navLinks[idx]) navLinks[idx].classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // ── COLLAPSIBLE SECTIONS ──────────────────────────────────
+  document.querySelectorAll('.section-header').forEach(header => {
+    const body = header.nextElementSibling;
+    const isCollapsed = header.classList.contains('collapsed');
+    header.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    if (isCollapsed) body.classList.add('hidden');
+
+    header.addEventListener('click', () => toggle(header, body));
+    header.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(header, body); }
+    });
+  });
+
+  function toggle(header, body) {
+    const isHidden = body.classList.contains('hidden');
+    if (isHidden) {
+      body.classList.remove('hidden');
+      header.classList.remove('collapsed');
+      header.setAttribute('aria-expanded', 'true');
+    } else {
+      body.classList.add('hidden');
+      header.classList.add('collapsed');
+      header.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  // ── EXPAND / COLLAPSE ALL ─────────────────────────────────
+  document.getElementById('btn-expand-all').addEventListener('click', () => {
+    document.querySelectorAll('.section-header').forEach(h => {
+      const b = h.nextElementSibling;
+      b.classList.remove('hidden');
+      h.classList.remove('collapsed');
+      h.setAttribute('aria-expanded', 'true');
+    });
+  });
+  document.getElementById('btn-collapse-all').addEventListener('click', () => {
+    document.querySelectorAll('.section-header').forEach(h => {
+      const b = h.nextElementSibling;
+      b.classList.add('hidden');
+      h.classList.add('collapsed');
+      h.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // ── FOCUS MODE ────────────────────────────────────────────
+  const btnFocus = document.getElementById('btn-focus');
+  let focusActive = false;
+  btnFocus.addEventListener('click', () => {
+    focusActive = !focusActive;
+    document.body.classList.toggle('focus-mode', focusActive);
+    btnFocus.classList.toggle('active', focusActive);
+    btnFocus.textContent = focusActive ? '⚡ Exit Focus' : '⚡ Focus Mode';
+  });
+
+  // ── EXAM MODE ─────────────────────────────────────────────
+  const btnExam = document.getElementById('btn-exam');
+  let examActive = false;
+  btnExam.addEventListener('click', () => {
+    examActive = !examActive;
+    document.body.classList.toggle('exam-mode', examActive);
+    btnExam.classList.toggle('active', examActive);
+    btnExam.textContent = examActive ? '📋 Exit Exam Mode' : '📋 Exam Mode';
+    if (examActive) {
+      // Expand all exam-visible sections
+      document.querySelectorAll('.section-body.exam-visible').forEach(b => {
+        b.classList.remove('hidden');
+        b.previousElementSibling.classList.remove('collapsed');
+        b.previousElementSibling.setAttribute('aria-expanded', 'true');
+      });
+    }
+  });
+
+  // ── FLASHCARDS ────────────────────────────────────────────
+  document.querySelectorAll('.flashcard').forEach(card => {
+    card.addEventListener('click', () => card.classList.toggle('flipped'));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('flipped'); }
+    });
+  });
+
+  // ── QUIZ ──────────────────────────────────────────────────
+  document.querySelectorAll('[data-quiz]').forEach(block => {
+    const opts = block.querySelectorAll('.quiz-opt');
+    const feedback = block.querySelector('.quiz-feedback');
+    const resetBtn = block.querySelector('.quiz-reset');
+    let answered = false;
+
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        const correct = opt.dataset.correct === 'true';
+        opts.forEach(o => {
+          o.classList.add('answered');
+          if (o.dataset.correct === 'true') {
+            o.classList.add('correct');
+            o.querySelector('.opt-icon').textContent = '✓';
+          } else if (o === opt && !correct) {
+            o.classList.add('wrong');
+            o.querySelector('.opt-icon').textContent = '✗';
+          }
+        });
+        feedback.textContent = correct
+          ? '✅ Correct! Well done.'
+          : '❌ Incorrect. Review the highlighted correct answer above.';
+        feedback.className = 'quiz-feedback show ' + (correct ? 'ok' : 'no');
+        resetBtn.classList.add('show');
+      });
+    });
+
+    resetBtn.addEventListener('click', () => {
+      answered = false;
+      opts.forEach(o => {
+        o.classList.remove('correct', 'wrong', 'answered');
+        o.querySelector('.opt-icon').textContent = '○';
+      });
+      feedback.className = 'quiz-feedback';
+      feedback.textContent = '';
+      resetBtn.classList.remove('show');
+    });
+  });
+
+  // ── CHECKLIST ─────────────────────────────────────────────
+  document.querySelectorAll('.chk-item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('done');
+      item.querySelector('.chk-box').textContent = item.classList.contains('done') ? '✓' : '';
+    });
+  });
+
+  // ── LIGHTBOX ─────────────────────────────────────────────
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lightbox-img');
+  const lbClose = document.getElementById('lightbox-close');
+
+  window.openLightbox = function(img) {
+    if (img && img.naturalWidth > 0) {
+      lbImg.src = img.src;
+      lbImg.alt = img.alt;
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+  lbClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+})();
+</script>
+
+</body>
+</html>
